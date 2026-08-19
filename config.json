@@ -1,0 +1,10 @@
+{
+  "site": {
+    "title": "计算机知识库",
+    "subtitle": "",
+    "description": "",
+    "footer": "",
+    "accent": "#0f766e",
+    "mermaid": true
+  }
+}

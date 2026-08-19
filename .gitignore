@@ -1,0 +1,31 @@
+# 忽略当前目录下的Debug文件
+*.vscode/
+Debug/
+Release/
+build/
+*.obj
+x64
+.vs
+
+*.exe
+.agents/
+# !是不忽略的意思
+!*.sln
+!*.vcxproj
+!*.filters
+outputs/
+
+# Agent / worktree 本地产物（勿提交）
+.claude/
+.worktrees/
+.workbuddy-ai/
+.superpowers/
+.cursor
+docs/superpowers/
+
+# 扩展本地调试与临时文件
+**/.wpscomate
+**/.chrome-test-profile/
+**/tmp-*.png
+**/.playwright-mcp/
+
