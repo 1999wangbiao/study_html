@@ -57,16 +57,29 @@ const indexMap = new Map();
 async function loadIndex() {
   await Promise.all(state.flatArticles.map(async (a) => {
     let text = a.content || '';
+    let fetchedOk = false;
     if (a.file) {
-      try {
-        const res = await fetch(a.file);
-        if (res.ok) text = await res.text();
-          else console.warn('加载失败', res.status, a.file);   // ← 加这行
+      const encoded = a.file.split('/').map(encodeURIComponent).join('/');
+      const urlsToTry = [encoded];
+      if (encoded !== a.file) urlsToTry.push(a.file);
+      for (const tryUrl of urlsToTry) {
+        try {
+          const res = await fetch(tryUrl, { cache: 'no-store' });
+          if (!res.ok) continue;
+          const body = await res.text();
+          if (!body || !body.trim()) continue;
+          if (/^\s*<!doctype\s|<html[\s>]/i.test(body.slice(0, 200))) continue;
+          text = body;
+          fetchedOk = true;
+          break;
         } catch (e) {
-            console.warn('请求出错', a.file, e.message);          // ← 加这行
+          console.warn('预取请求出错', a.file, e.message);
         }
+      }
+      if (!fetchedOk) console.warn('预取失败（留待点击时重试）', a.file);
     }
-    indexMap.set(a.id, text);
+    // 只有成功拉到正文才进缓存；失败就留空，让 getArticleMarkdown 按需重试
+    if (fetchedOk || a.content) indexMap.set(a.id, text);
     state.searchIndex.push({ ...a, plain: plainText(text) });
   }));
 }
