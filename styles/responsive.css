@@ -1,0 +1,74 @@
+/* ========== 响应式 ========== */
+@media (max-width: 1280px) {
+  .layout { grid-template-columns: 252px minmax(0, 1fr); }
+  .toc { display: none; }
+  .content { padding: 36px 36px 60px; }
+}
+
+@media (max-width: 900px) {
+  .menu-btn { display: inline-grid; }
+  .topbar-inner { gap: 10px; padding: 0 14px; }
+  .brand-text small { display: none; }
+  .search { margin: 0; }
+  .searchbox kbd { display: none; }
+
+  .layout { display: block; }
+
+  .sidebar {
+    position: fixed;
+    top: var(--topbar-h); left: 0; bottom: 0;
+    z-index: 80;
+    width: 296px; height: auto;
+    transform: translateX(-102%);
+    transition: transform var(--dur-slow) var(--ease);
+    box-shadow: var(--shadow-lg);
+    background: var(--panel);
+  }
+  body.sidebar-open .sidebar { transform: translateX(0); }
+
+  .overlay {
+    position: fixed;
+    inset: var(--topbar-h) 0 0 0;
+    z-index: 70;
+    background: rgba(8, 12, 18, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    animation: overlayIn var(--dur) var(--ease);
+  }
+  body.sidebar-open .overlay { display: block; }
+
+  .content { padding: 24px 20px 64px; }
+
+  .back-to-top { right: 16px; bottom: 20px; width: 40px; height: 40px; }
+
+  .home-page .page-head h1 { font-size: 32px; }
+  .cat-grid { grid-template-columns: 1fr; }
+}
+
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 640px) {
+  :root { --topbar-h: 56px; }
+  .topbar-inner { gap: 8px; padding: 0 12px; }
+  .brand-text strong { display: none; }
+  .brand-mark { width: 34px; height: 34px; }
+  .icon-btn { width: 34px; height: 34px; }
+  .searchbox { height: 36px; }
+  .cat-grid { grid-template-columns: 1fr; }
+  .page-head h1 { font-size: 28px; }
+  .article-header h1 { font-size: 24px; }
+  .md-body h2 { font-size: 20px; }
+  .md-body h3 { font-size: 16.5px; }
+  .article-nav { grid-template-columns: 1fr; }
+  .article-nav-link.next { text-align: left; align-items: flex-start; }
+  .article-nav-link.next .article-nav-label { justify-content: flex-start; }
+  .home-page .page-head h1 { font-size: 26px; }
+  .stat-strip > span { padding: 0 12px; }
+}
+
+@media print {
+  .topbar, .sidebar, .toc, .back-to-top, .progress,
+  .overlay, .search, .article-actions, .article-nav { display: none !important; }
+  .content { padding: 0; }
+  body { background: #fff; color: #000; }
+}

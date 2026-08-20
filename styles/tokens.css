@@ -1,0 +1,207 @@
+/* ========== 设计令牌（Design Tokens） ==========
+   风格：薄荷绿 + 大标题 + 彩色顶条卡片 —— 参考"四大课程体系"。
+*/
+:root {
+  /* 基础色板 —— 浅薄荷绿 */
+  --bg: #eef6ee;
+  --bg-grad-1: #f2f8f3;
+  --bg-grad-2: #e7f0e8;
+  --panel: #ffffff;
+  --panel-soft: #f4f8f5;
+  --panel-elev: #ffffff;
+
+  --text: #1f2937;
+  --muted: #64748b;
+  --faint: #94a3b8;
+
+  --border: #dbe5dc;
+  --border-strong: #c1d0c3;
+
+  /* 主色：翠绿（与参考图一致） */
+  --accent: #059669;
+  --accent-hover: #047857;
+  --accent-soft: rgba(5, 150, 105, 0.10);
+  --accent-soft-strong: rgba(5, 150, 105, 0.20);
+  --accent-strong: #047857;
+  --accent-grad: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+
+  /* 分类彩色顶条（fallback 列表） */
+  --cat-1: #8b5cf6;   /* purple */
+  --cat-2: #06b6d4;   /* cyan */
+  --cat-3: #f97316;   /* orange */
+  --cat-4: #22c55e;   /* green */
+  --cat-5: #ec4899;   /* pink */
+  --cat-6: #3b82f6;   /* blue */
+
+  --ok: #16a34a;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --highlight: #fef3c7;
+
+  /* 代码块配色 —— 暖一点、带薄荷绿味儿的暗色调，跟整页主色呼应 */
+  --code-bg: #11201a;
+  --code-bg-grad-1: #19302a;
+  --code-bg-grad-2: #0d1815;
+  --code-text: #e6efe8;
+  --code-muted: #94a8a0;
+  --code-border: rgba(255, 255, 255, 0.06);
+  --code-gutter: rgba(255, 255, 255, 0.045);
+
+  /* syntax 配色：从 mint/teal 拨出色相区间，让关键字 / 类型 / 字符串 有差异但又不会互相打架 */
+  --hl-comment: #7a9485;       /* 柔和的灰绿 */
+  --hl-string: #b9e3c0;        /* 淡薄荷 */
+  --hl-keyword: #f3a96b;       /* 暖橘，跟绿色互补 */
+  --hl-type: #67d3c5;          /* 青绿主色延伸 */
+  --hl-function: #c8b0ff;      /* 淡紫 */
+  --hl-number: #f5d27e;        /* 暖黄 */
+  --hl-bool: #ff9aa2;          /* 玫粉 */
+  --hl-operator: #e6efe8;      /* 复用正文，弱化但可识别 */
+
+  /* 阴影（更轻，参考图风格） */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 20px 44px rgba(15, 23, 42, 0.10), 0 6px 14px rgba(15, 23, 42, 0.06);
+  --shadow-glow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+
+  /* 圆角 */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  /* 尺寸 */
+  --topbar-h: 64px;
+  --content-max: 880px;
+
+  /* 字体 */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
+               "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "SF Mono", "Fira Code", Consolas,
+               "Liberation Mono", "Courier New", monospace;
+  --font-display: "Inter", "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+
+  /* 动画 */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 320ms;
+}
+
+/* ========== 暗色主题 ========== */
+:root[data-theme="dark"] {
+  --bg: #0a0e14;
+  --bg-grad-1: #0c1117;
+  --bg-grad-2: #0a0e14;
+  --panel: #131923;
+  --panel-soft: #1a2230;
+  --panel-elev: #1a2230;
+
+  --text: #e6ecf3;
+  --muted: #98a4b5;
+  --faint: #6b7689;
+
+  --border: #232b38;
+  --border-strong: #2f3a4a;
+
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-soft: rgba(45, 212, 191, 0.12);
+  --accent-soft-strong: rgba(45, 212, 191, 0.22);
+  --accent-strong: #99f6e4;
+  --accent-grad: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 60%, #0d9488 100%);
+
+  --cat-1: #a78bfa;
+  --cat-2: #22d3ee;
+  --cat-3: #fb923c;
+  --cat-4: #4ade80;
+  --cat-5: #f472b6;
+  --cat-6: #60a5fa;
+
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --highlight: #422006;
+
+  --code-bg: #0b1119;
+  --code-bg-grad-1: #131c2a;
+  --code-bg-grad-2: #0b1119;
+  --code-text: #e2e8f0;
+  --code-muted: #94a3b8;
+  --code-border: rgba(255, 255, 255, 0.05);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.55), 0 8px 18px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 0 4px rgba(45, 212, 191, 0.18);
+}
+
+/* ========== 基础重置 ========== */
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  padding-top: var(--topbar-h);
+  min-height: 100vh;
+  background: var(--bg);
+  background-image:
+    radial-gradient(at 10% -10%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 40%),
+    radial-gradient(at 90% 0%, color-mix(in srgb, var(--cat-1) 8%, transparent) 0%, transparent 45%),
+    linear-gradient(180deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+body.sidebar-open { overflow: hidden; }
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--faint);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+button { font-family: inherit; }
+
+::selection {
+  background: var(--accent-soft-strong);
+  color: var(--accent-strong);
+}
+
+.icon {
+  flex: none;
+  vertical-align: middle;
+}
+
