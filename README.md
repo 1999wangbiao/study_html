@@ -73,11 +73,27 @@ $env:PORT = 8080; node server.js
 
 ```text
 .
-├── config.json          # 仅站点品牌信息（可选）
-├── index.html           # 页面骨架
-├── styles.css           # 样式
-├── app.js               # 渲染、路由、搜索逻辑
+├── config.json          # 仅站点品牌信息（可选，生成产物）
+├── index.html           # 页面骨架（引入 js/main.js 与 styles/ 三件套）
 ├── server.js            # 静态服务器 + 目录自动扫描
+├── build.js             # 预生成 config.json（可选）
+├── lib/
+│   └── scanner.js       # 共享扫描/构建逻辑（server.js / build.js 共用）
+├── js/                  # 前端 ES Modules
+│   ├── main.js          # 入口：路由、主题、事件绑定、启动
+│   ├── pages.js         # 页面渲染（首页/分类/文章/404）
+│   ├── nav.js           # 侧边栏导航树
+│   ├── search.js        # 全文搜索
+│   ├── source.js        # 文章加载 + 源码展示
+│   ├── markdown.js      # Markdown 渲染器
+│   ├── code-block.js    # 代码文件展示
+│   ├── toc.js           # 文章目录 + 滚动高亮
+│   ├── state.js         # 全局状态 + 搜索索引
+│   └── utils.js         # 通用工具 + 图标库
+├── styles/              # 分层样式（按级联顺序加载）
+│   ├── tokens.css       # 设计令牌 + 暗色主题 + 基础重置
+│   ├── components.css   # 全部组件样式 + 动画
+│   └── responsive.css   # 响应式媒体查询
 └── 知识库/               # 学习资料，目录即配置
 ```
 
