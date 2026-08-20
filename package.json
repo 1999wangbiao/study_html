@@ -1,0 +1,10 @@
+{
+  "name": "study-html",
+  "version": "1.0.0",
+  "private": true,
+  "description": "计算机知识库：零依赖静态站点（Node http 服务器 + 原生前端）",
+  "scripts": {
+    "start": "node server.js",
+    "build": "node build.js"
+  }
+}
