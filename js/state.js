@@ -61,7 +61,10 @@ async function loadIndex() {
       try {
         const res = await fetch(a.file);
         if (res.ok) text = await res.text();
-      } catch (e) { /* keep inline content */ }
+          else console.warn('加载失败', res.status, a.file);   // ← 加这行
+        } catch (e) {
+            console.warn('请求出错', a.file, e.message);          // ← 加这行
+        }
     }
     indexMap.set(a.id, text);
     state.searchIndex.push({ ...a, plain: plainText(text) });
@@ -69,3 +72,4 @@ async function loadIndex() {
 }
 
 export { state, loadUserOverrides, saveUserOverrides, defaultCollapsed, isNodeCollapsed, indexMap, loadIndex };
+
