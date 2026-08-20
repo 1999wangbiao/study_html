@@ -511,7 +511,7 @@ async function getArticleSourceFiles(article) {
   } else if (typeof article.code === 'string') {
     rawPaths.push(article.code);
   } else if (article.file) {
-    rawPaths.push(base + 'main.go');
+    rawPaths.push('main.go');
   }
   const paths = rawPaths.map((p) => (p.startsWith('/') ? p.slice(1) : base + p));
   const results = await Promise.all(paths.map(async (path, idx) => {

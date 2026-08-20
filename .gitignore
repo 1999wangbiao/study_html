@@ -22,7 +22,7 @@ outputs/
 .superpowers/
 .cursor
 docs/superpowers/
-
+node_modules/
 # 构建产物
 config.json
 
