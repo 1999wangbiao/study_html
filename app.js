@@ -474,16 +474,32 @@ function renderCategory(categoryId) {
 async function getArticleMarkdown(article) {
   if (indexMap.has(article.id)) return indexMap.get(article.id);
   if (article.content) return article.content;
-  try {
-    const url = article.file.split('/').map(encodeURIComponent).join('/');
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('load failed');
-    const text = await res.text();
-    indexMap.set(article.id, text);
-    return text;
-  } catch (e) {
-    return `# 内容加载失败\n\n无法读取 \`${article.file}\`，请检查 config.json 中的 file 路径。`;
+  const url = article.file.split('/').map(encodeURIComponent).join('/');
+  const rawUrl = article.file;
+  const urlsToTry = [url];
+  if (rawUrl !== url) urlsToTry.push(rawUrl);
+  for (const tryUrl of urlsToTry) {
+    try {
+      const res = await fetch(tryUrl, { cache: 'no-store' });
+      if (!res.ok) {
+        if (res.status === 404) {
+          return `# 加载失败\n\n**文件不存在**：\`${article.file}\`\n\n服务器返回 404。请确认：\n\n1. 服务器上是否存在 \`知识库/\` 目录\n2. 文件路径是否正确\n3. 运行 \`node build.js\` 重新生成配置`;
+        }
+        continue;
+      }
+      const text = await res.text();
+      if (text && text.trim().length > 0) {
+        if (/^\s*<!doctype\s|<html[\s>]/i.test(text.slice(0, 200))) {
+          return `# 加载失败\n\n**服务器返回了 HTML 页面而非 Markdown 文件**。\n\n这通常是因为 Nginx 配置了 SPA 回退（\`try_files $uri /index.html\`），导致所有请求都被重定向到 \`index.html\`。\n\n**解决方案**：\n\n在 Nginx 配置中，为 \`.md\` 文件和 \`知识库/\` 目录添加正确的 location 规则，或者使用 \`server.js\`（Node.js）直接服务文件。`;
+        }
+        indexMap.set(article.id, text);
+        return text;
+      }
+    } catch (e) {
+      continue;
+    }
   }
+  return `# 加载失败\n\n无法读取 \`${article.file}\`\n\n已尝试路径：\n- 编码URL：\`${url}\`\n- 原始URL：\`${rawUrl}\`\n\n请检查：\n1. 服务器上 \`知识库/\` 目录是否存在\n2. 文件权限是否正确\n3. 在浏览器中直接访问 [${encodeURI(rawUrl)}](${rawUrl}) 查看返回内容`;
 }
 
 async function getArticleSourceFiles(article) {
@@ -1477,7 +1493,7 @@ async function init() {
   setupReveal();
 
   try {
-    const res = await fetch('config.json');
+    const res = await fetch('config.json?t=' + Date.now());
     if (!res.ok) throw new Error('config not found');
     state.config = await res.json();
     applySiteConfig();
