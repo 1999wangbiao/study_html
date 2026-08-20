@@ -475,7 +475,8 @@ async function getArticleMarkdown(article) {
   if (indexMap.has(article.id)) return indexMap.get(article.id);
   if (article.content) return article.content;
   try {
-    const res = await fetch(article.file);
+    const url = article.file.split('/').map(encodeURIComponent).join('/');
+    const res = await fetch(url);
     if (!res.ok) throw new Error('load failed');
     const text = await res.text();
     indexMap.set(article.id, text);
