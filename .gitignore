@@ -23,6 +23,9 @@ outputs/
 .cursor
 docs/superpowers/
 
+# 构建产物
+config.json
+
 # 扩展本地调试与临时文件
 **/.wpscomate
 **/.chrome-test-profile/
