@@ -236,7 +236,7 @@ function renderMermaidBlocks() {
   const site = state.config.site || {};
   if (site.mermaid === false) return;
 
-  const init = (mermaid) => {
+  const init = async (mermaid) => {
     if (!mermaid) return;
     try {
       mermaid.initialize({
@@ -244,11 +244,16 @@ function renderMermaidBlocks() {
         theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'base',
         securityLevel: 'loose'
       });
-      blocks.forEach((el) => {
+      // 逐块渲染：mermaid.run 是异步的，必须 await 才能接住 rejection；
+      // suppressErrors 保证某块失败不会中断后续块。
+      for (const el of blocks) {
         try {
-          mermaid.run({ nodes: [el] });
-        } catch (e) { /* keep source visible */ }
-      });
+          await mermaid.run({ nodes: [el], suppressErrors: true });
+        } catch (e) {
+          // 单块失败：保留源码可见，避免其内容与后续块叠放污染
+          console.warn('Mermaid 渲染失败，已保留源码:', e);
+        }
+      }
     } catch (e) { /* keep source visible */ }
   };
 
