@@ -32,3 +32,6 @@ config.json
 **/tmp-*.png
 **/.playwright-mcp/
 
+
+# 题库重构前的安全备份（勿提交，git历史已保留原文件）
+知识库/_backup_题库/
