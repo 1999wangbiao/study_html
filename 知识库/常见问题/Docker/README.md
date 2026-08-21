@@ -74,9 +74,9 @@ RUN npm prune --production
 
 #### 1.4 自测要点
 
-- [ ] 用 `docker images` 对比优化前后镜像大小。
-- [ ] 改一行业务代码重新 `build`，是否触发 `npm ci`（不应该触发）。
-- [ ] `docker history <image>` 查看层数是否合理。
+-  用 `docker images` 对比优化前后镜像大小。
+-  改一行业务代码重新 `build`，是否触发 `npm ci`（不应该触发）。
+-  `docker history <image>` 查看层数是否合理。
 
 ---
 
@@ -116,9 +116,9 @@ docker run -d \                  # 后台运行
 
 #### 2.4 自测要点
 
-- [ ] `docker ps` 能看到容器状态为 `Up`。
-- [ ] `curl localhost:8080` 能通。
-- [ ] 宿主机重启后，`unless-stopped` 的容器是否自动起来。
+-  `docker ps` 能看到容器状态为 `Up`。
+-  `curl localhost:8080` 能通。
+-  宿主机重启后，`unless-stopped` 的容器是否自动起来。
 
 ---
 
@@ -157,9 +157,9 @@ docker run --rm --network container:myapp alpine sh -c "apk add curl && curl loc
 
 #### 3.4 自测要点
 
-- [ ] 能用 `exec` 进容器查看 `/app` 目录。
-- [ ] `logs -f` 能实时滚动看到新日志。
-- [ ] 容器异常退出时，能通过 `inspect` 的 `State.Error` 定位原因。
+-  能用 `exec` 进容器查看 `/app` 目录。
+-  `logs -f` 能实时滚动看到新日志。
+-  容器异常退出时，能通过 `inspect` 的 `State.Error` 定位原因。
 
 ---
 
@@ -198,9 +198,9 @@ docker run -d --name app --network mynet \
 
 #### 4.4 自测要点
 
-- [ ] 删除容器后重新 `run`，Volume 数据仍在。
-- [ ] 两个容器在同一自定义网络内，能用容器名 ping 通。
-- [ ] `docker volume ls` 能看到创建的卷。
+-  删除容器后重新 `run`，Volume 数据仍在。
+-  两个容器在同一自定义网络内，能用容器名 ping 通。
+-  `docker volume ls` 能看到创建的卷。
 
 ---
 
@@ -240,9 +240,9 @@ services:
 
 #### 5.3 自测要点
 
-- [ ] `docker compose config` 能正确解析 YAML。
-- [ ] `db` 健康检查通过后 `web` 才启动。
-- [ ] `down` 后卷数据仍在；`down -v` 后卷被删除。
+-  `docker compose config` 能正确解析 YAML。
+-  `db` 健康检查通过后 `web` 才启动。
+-  `down` 后卷数据仍在；`down -v` 后卷被删除。
 
 ---
 
@@ -270,9 +270,9 @@ docker buildx build --platform linux/amd64,linux/arm64 -t img . --push
 
 #### 6.4 自测要点
 
-- [ ] 对比开启 BuildKit 前后的构建时间。
-- [ ] 改一行代码重建，`npm ci` 是否命中缓存。
-- [ ] `buildx` 能同时产出 amd64 和 arm64 镜像。
+-  对比开启 BuildKit 前后的构建时间。
+-  改一行代码重建，`npm ci` 是否命中缓存。
+-  `buildx` 能同时产出 amd64 和 arm64 镜像。
 
 ---
 
@@ -301,9 +301,9 @@ docker rmi $(docker images -f "dangling=true" -q)  # 删悬空镜像
 
 #### 7.3 自测要点
 
-- [ ] 定期 `docker system df` 检查占用。
-- [ ] `prune --volumes` 前确认没有要保留的孤立卷。
-- [ ] 生产环境避免用 `-a --volumes`，改用精确的 `image prune`。
+-  定期 `docker system df` 检查占用。
+-  `prune --volumes` 前确认没有要保留的孤立卷。
+-  生产环境避免用 `-a --volumes`，改用精确的 `image prune`。
 
 ---
 
@@ -345,9 +345,9 @@ trivy image myimage          # 第三方，查 CVE
 
 #### 8.6 自测要点
 
-- [ ] 容器内 `whoami` 不是 root。
-- [ ] `--read-only` 下应用仍能正常写 `/tmp`。
-- [ ] `trivy image` 扫描无高危 CVE。
+-  容器内 `whoami` 不是 root。
+-  `--read-only` 下应用仍能正常写 `/tmp`。
+-  `trivy image` 扫描无高危 CVE。
 
 ---
 
@@ -539,33 +539,33 @@ docker compose down -v
 ## 附录 C：自测清单汇总
 
 ### Dockerfile
-- [ ] 多阶段构建，运行镜像不含构建工具
-- [ ] 有 `.dockerignore`，排除 `node_modules`/`.git`/`dist`
-- [ ] 依赖文件先于源码 COPY
-- [ ] 基础镜像固定版本（非 `latest`）
-- [ ] 以非 root 用户运行
+-  多阶段构建，运行镜像不含构建工具
+-  有 `.dockerignore`，排除 `node_modules`/`.git`/`dist`
+-  依赖文件先于源码 COPY
+-  基础镜像固定版本（非 `latest`）
+-  以非 root 用户运行
 
 ### 容器运行
-- [ ] 设置 `--restart unless-stopped`
-- [ ] 配置资源限制 `--memory`/`--cpus`
-- [ ] 端口/卷/环境变量配置正确
+-  设置 `--restart unless-stopped`
+-  配置资源限制 `--memory`/`--cpus`
+-  端口/卷/环境变量配置正确
 
 ### compose
-- [ ] `depends_on` 带 `condition: service_healthy`
-- [ ] 敏感配置走 `env_file` 而非写死
-- [ ] 用 `profiles` 区分环境
-- [ ] `down` 与 `down -v` 分清
+-  `depends_on` 带 `condition: service_healthy`
+-  敏感配置走 `env_file` 而非写死
+-  用 `profiles` 区分环境
+-  `down` 与 `down -v` 分清
 
 ### 安全
-- [ ] 容器内 `whoami` 非 root
-- [ ] 无密钥写进镜像
-- [ ] `trivy image` 无高危 CVE
-- [ ] 生产用 `--read-only` + `--tmpfs`
+-  容器内 `whoami` 非 root
+-  无密钥写进镜像
+-  `trivy image` 无高危 CVE
+-  生产用 `--read-only` + `--tmpfs`
 
 ### 运维
-- [ ] 定期 `docker system df` 体检
-- [ ] 清理前确认卷数据是否要保留
-- [ ] 备份重要 Volume
+-  定期 `docker system df` 体检
+-  清理前确认卷数据是否要保留
+-  备份重要 Volume
 
 ---
 

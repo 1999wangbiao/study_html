@@ -244,13 +244,13 @@ myapp        multi   18 MB    # ← 缩小 70 倍
 
 ### 1.7 自测要点
 
-- [ ] `docker images` 对比两套镜像大小，生产镜像应小一个数量级（本例 70 倍）。
-- [ ] 进生产镜像 `exec sh`，确认没有 `npm`/`go`/`tsc`/`curl` 等构建工具。
-- [ ] `docker history <image>` 运行镜像层数合理（应只有 `COPY` 二进制 + `USER` + `CMD` 几层）。
-- [ ] `docker history <image>` 中无 `RUN go build` / `RUN npm install` 等构建层（它们应留在 builder 阶段，不会进最终镜像）。
-- [ ] 改一行业务代码重建，`go mod download` 层命中缓存（不重新下载依赖）。
-- [ ] 用 `trivy image <image>` 扫描，生产镜像 CVE 数显著少于单阶段镜像。
-- [ ] 生产镜像以非 root 用户启动。
+-  `docker images` 对比两套镜像大小，生产镜像应小一个数量级（本例 70 倍）。
+-  进生产镜像 `exec sh`，确认没有 `npm`/`go`/`tsc`/`curl` 等构建工具。
+-  `docker history <image>` 运行镜像层数合理（应只有 `COPY` 二进制 + `USER` + `CMD` 几层）。
+-  `docker history <image>` 中无 `RUN go build` / `RUN npm install` 等构建层（它们应留在 builder 阶段，不会进最终镜像）。
+-  改一行业务代码重建，`go mod download` 层命中缓存（不重新下载依赖）。
+-  用 `trivy image <image>` 扫描，生产镜像 CVE 数显著少于单阶段镜像。
+-  生产镜像以非 root 用户启动。
 
 ---
 
@@ -277,8 +277,8 @@ npm ci --omit=dev              # 只装 production 依赖
 
 ### 2.4 自测要点
 
-- [ ] 生产镜像内 `ls node_modules` 无 `typescript`/`eslint` 等 dev 包。
-- [ ] `npm ls --omit=dev` 在生产镜像里能正常列出运行时依赖。
+-  生产镜像内 `ls node_modules` 无 `typescript`/`eslint` 等 dev 包。
+-  `npm ls --omit=dev` 在生产镜像里能正常列出运行时依赖。
 
 ---
 
@@ -315,9 +315,9 @@ services:
 
 ### 3.4 自测要点
 
-- [ ] 开发环境改一行代码，容器内日志立即显示热重载。
-- [ ] 生产镜像在另一台无源码的机器上 `docker run` 能正常启动。
-- [ ] 开发环境的 `/app/node_modules` 没被宿主机目录覆盖（匿名卷生效）。
+-  开发环境改一行代码，容器内日志立即显示热重载。
+-  生产镜像在另一台无源码的机器上 `docker run` 能正常启动。
+-  开发环境的 `/app/node_modules` 没被宿主机目录覆盖（匿名卷生效）。
 
 ---
 
@@ -344,8 +344,8 @@ USER app
 
 ### 4.4 自测要点
 
-- [ ] 生产容器内 `whoami` 返回 `app` 而非 `root`。
-- [ ] 生产容器内尝试 `apk add` 或写 `/etc` 失败（权限拒绝）。
+-  生产容器内 `whoami` 返回 `app` 而非 `root`。
+-  生产容器内尝试 `apk add` 或写 `/etc` 失败（权限拒绝）。
 
 ---
 
@@ -377,8 +377,8 @@ docker run -d \
 
 ### 5.4 自测要点
 
-- [ ] 生产容器 `docker stats` 显示的内存上限符合配置。
-- [ ] 模拟内存泄漏，容器被 OOM kill 而非拖垮宿主机。
+-  生产容器 `docker stats` 显示的内存上限符合配置。
+-  模拟内存泄漏，容器被 OOM kill 而非拖垮宿主机。
 
 ---
 
@@ -402,9 +402,9 @@ docker run -d \
 
 ### 6.4 自测要点
 
-- [ ] 开发容器崩溃后不自动重启，能看到退出码。
-- [ ] 生产容器崩溃后自动恢复，`docker ps` 显示 `Up`。
-- [ ] 宿主机重启后，`unless-stopped` 的容器自动起来。
+-  开发容器崩溃后不自动重启，能看到退出码。
+-  生产容器崩溃后自动恢复，`docker ps` 显示 `Up`。
+-  宿主机重启后，`unless-stopped` 的容器自动起来。
 
 ---
 
@@ -444,9 +444,9 @@ ENV DATABASE_URL=postgres://user:password@db:5432/prod
 
 ### 7.5 自测要点
 
-- [ ] `docker history <生产镜像>` 中无任何密钥痕迹。
-- [ ] `.env` 文件在 `.gitignore` 中。
-- [ ] 生产容器 `env` 能看到注入的变量，但镜像层里搜不到。
+-  `docker history <生产镜像>` 中无任何密钥痕迹。
+-  `.env` 文件在 `.gitignore` 中。
+-  生产容器 `env` 能看到注入的变量，但镜像层里搜不到。
 
 ---
 
@@ -475,9 +475,9 @@ docker run -d --network prod-net -p 80:80 nginx     # 只有反代暴露
 
 ### 8.4 自测要点
 
-- [ ] 生产环境 `docker ps` 中应用容器无端口映射，只有反代容器暴露端口。
-- [ ] 容器间能用服务名互访（如 `redis://redis:6379`）。
-- [ ] 外部无法直接访问应用容器端口。
+-  生产环境 `docker ps` 中应用容器无端口映射，只有反代容器暴露端口。
+-  容器间能用服务名互访（如 `redis://redis:6379`）。
+-  外部无法直接访问应用容器端口。
 
 ---
 
@@ -508,9 +508,9 @@ docker run --log-driver=json-file \
 
 ### 9.4 自测要点
 
-- [ ] 生产容器日志能被 ELK/Loki 采集到。
-- [ ] 单个日志文件不超过 `max-size`，旧文件按 `max-file` 轮转。
-- [ ] 日志中无敏感信息（密码/token）。
+-  生产容器日志能被 ELK/Loki 采集到。
+-  单个日志文件不超过 `max-size`，旧文件按 `max-file` 轮转。
+-  日志中无敏感信息（密码/token）。
 
 ---
 
@@ -538,9 +538,9 @@ docker build -t myapp:1.2.3-abc1234 .  # 加 git short sha 可追溯
 
 ### 10.4 自测要点
 
-- [ ] 生产镜像标签为 `1.2.3` 或 `1.2.3-<sha>`，无 `latest`。
-- [ ] 通过 `docker image inspect` 能看到镜像构建时间和层 sha。
-- [ ] 回滚时能精确指定上一个版本标签。
+-  生产镜像标签为 `1.2.3` 或 `1.2.3-<sha>`，无 `latest`。
+-  通过 `docker image inspect` 能看到镜像构建时间和层 sha。
+-  回滚时能精确指定上一个版本标签。
 
 ---
 
@@ -557,8 +557,8 @@ docker build -t myapp:1.2.3-abc1234 .  # 加 git short sha 可追溯
 
 ### 11.3 自测要点
 
-- [ ] 生产镜像内 `which curl vim ping` 全部不存在。
-- [ ] 开发镜像内能直接 `curl localhost:80` 排查。
+-  生产镜像内 `which curl vim ping` 全部不存在。
+-  开发镜像内能直接 `curl localhost:80` 排查。
 
 ---
 
@@ -604,9 +604,9 @@ docker compose --profile prod up -d # 生产
 
 ### 12.3 自测要点
 
-- [ ] `docker compose --profile dev config` 和 `--profile prod config` 输出不同。
-- [ ] 公共服务（db）在两个 profile 下都启动。
-- [ ] 开发 profile 不带资源限制和 user 字段。
+-  `docker compose --profile dev config` 和 `--profile prod config` 输出不同。
+-  公共服务（db）在两个 profile 下都启动。
+-  开发 profile 不带资源限制和 user 字段。
 
 ---
 

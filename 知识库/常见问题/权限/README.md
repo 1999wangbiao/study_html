@@ -150,10 +150,10 @@ json.Unmarshal(base64Decode(parts[1]), &claims) // 危险
 
 ### 1.6 自测要点
 
-- [ ] 不带 token → `401`
-- [ ] 乱填 token → `401`
-- [ ] 过期 token → `401`
-- [ ] 合法 token → 能进入接口，且 `UserID` 正确
+-  不带 token → `401`
+-  乱填 token → `401`
+-  过期 token → `401`
+-  合法 token → 能进入接口，且 `UserID` 正确
 
 ---
 
@@ -490,13 +490,13 @@ if req.Role == "admin" { /* 客户端可伪造 */ }
 
 ### 2.9 自测要点
 
-- [ ] `user` 角色调 `/api/admin/users` → `403`
-- [ ] `admin` 角色同接口 → `200`
-- [ ] Body 里写 `"role":"admin"` 不能提权
-- [ ] 漏挂 `RequireRole` 时，Service 仍能拦住
-- [ ] 权限变更后，高危接口不以过期 JWT 角色为准（见问题 8）
-- [ ] 改角色 / 权限后，缓存或 `token_version` 按设计失效（见 2.6.3）
-- [ ] 管理列表强制分页且 `page_size` 有服务端上限（见 2.6.4）
+-  `user` 角色调 `/api/admin/users` → `403`
+-  `admin` 角色同接口 → `200`
+-  Body 里写 `"role":"admin"` 不能提权
+-  漏挂 `RequireRole` 时，Service 仍能拦住
+-  权限变更后，高危接口不以过期 JWT 角色为准（见问题 8）
+-  改角色 / 权限后，缓存或 `token_version` 按设计失效（见 2.6.3）
+-  管理列表强制分页且 `page_size` 有服务端上限（见 2.6.4）
 
 ---
 
@@ -652,10 +652,10 @@ func (s *NoteService) Get(reqUserID, id uint) (*Note, error) {
 
 ### 3.6 自测要点
 
-- [ ] 用户 A 读自己的 note → `200`
-- [ ] 用户 A 读 B 的 note id → `403` 或统一 `404`
-- [ ] 用户 A 改 / 删 B 的 note → 失败
-- [ ] admin 可读他人 note（若业务允许）
+-  用户 A 读自己的 note → `200`
+-  用户 A 读 B 的 note id → `403` 或统一 `404`
+-  用户 A 改 / 删 B 的 note → 失败
+-  admin 可读他人 note（若业务允许）
 
 ---
 
@@ -782,10 +782,10 @@ r.db.Raw("SELECT * FROM notes WHERE title LIKE '%" + keyword + "%'")
 
 ### 4.6 自测要点
 
-- [ ] 普通用户列表只有自己的数据
-- [ ] 搜索他人专属关键词，搜不到他人私有数据
-- [ ] 改 pageSize 很大也不能看到他人数据
-- [ ] admin 列表行为符合产品设计
+-  普通用户列表只有自己的数据
+-  搜索他人专属关键词，搜不到他人私有数据
+-  改 pageSize 很大也不能看到他人数据
+-  admin 列表行为符合产品设计
 
 ---
 
@@ -892,9 +892,9 @@ func badCreate(req BadReq) {
 
 ### 5.6 自测要点
 
-- [ ] Body 带 `"role":"admin"` 不能提权
-- [ ] Body 带他人 `"userId"` 创建后，库中 `user_id` 仍是当前用户
-- [ ] 更新接口无法把笔记改挂到别人名下（除非专门的转移接口且有鉴权）
+-  Body 带 `"role":"admin"` 不能提权
+-  Body 带他人 `"userId"` 创建后，库中 `user_id` 仍是当前用户
+-  更新接口无法把笔记改挂到别人名下（除非专门的转移接口且有鉴权）
 
 ---
 
@@ -1001,10 +1001,10 @@ func (s *NoteService) Export(ids []uint) ([]Note, error) {
 
 ### 6.6 自测要点
 
-- [ ] 无权限用户 `GET` 详情失败
-- [ ] 无权限用户导出含他人 id 失败
-- [ ] 无权限用户下载附件失败
-- [ ] 有权限用户读 / 导出成功
+-  无权限用户 `GET` 详情失败
+-  无权限用户导出含他人 id 失败
+-  无权限用户下载附件失败
+-  有权限用户读 / 导出成功
 
 ---
 
@@ -1125,10 +1125,10 @@ claims := Claims{UserID: id, Role: role}
 
 ### 7.6 自测要点
 
-- [ ] 未设置 `JWT_SECRET` 时进程拒绝启动（或明确失败）
-- [ ] 篡改 token payload 后验签失败
-- [ ] 过期 token 被拒绝
-- [ ] 仓库检索无生产 Secret
+-  未设置 `JWT_SECRET` 时进程拒绝启动（或明确失败）
+-  篡改 token payload 后验签失败
+-  过期 token 被拒绝
+-  仓库检索无生产 Secret
 
 ---
 
@@ -1236,9 +1236,9 @@ func (s *UserService) DeleteUser(actorRole string, targetID uint) error {
 
 ### 8.6 自测要点
 
-- [ ] 用户从 admin 降为 user 后，旧 token 调普通接口的行为符合预期
-- [ ] 旧 token 调删除用户等关键接口 → 失败（若做了回源）
-- [ ] 封禁用户无法继续调用（若检查 Disabled / version）
+-  用户从 admin 降为 user 后，旧 token 调普通接口的行为符合预期
+-  旧 token 调删除用户等关键接口 → 失败（若做了回源）
+-  封禁用户无法继续调用（若检查 Disabled / version）
 
 ---
 
@@ -1334,9 +1334,9 @@ if !canAccess {
 
 ### 9.6 自测要点
 
-- [ ] 访问他人资源与访问不存在 id，对普通用户响应一致（若选策略 A）
-- [ ] 自己的资源仍正常 `200`
-- [ ] 管理端若需要区分，仅 admin 能看到差异
+-  访问他人资源与访问不存在 id，对普通用户响应一致（若选策略 A）
+-  自己的资源仍正常 `200`
+-  管理端若需要区分，仅 admin 能看到差异
 
 ---
 
@@ -1418,9 +1418,9 @@ func TestUserCannotListAdminUsers(t *testing.T) {
 
 ### 10.6 自测要点
 
-- [ ] 隐藏的管理菜单对应 API，普通用户直接调用失败
-- [ ] 所有写操作、导出、下载均有后端校验
-- [ ] CI 或手工清单里包含「绕过 UI 的 API 用例」
+-  隐藏的管理菜单对应 API，普通用户直接调用失败
+-  所有写操作、导出、下载均有后端校验
+-  CI 或手工清单里包含「绕过 UI 的 API 用例」
 
 ---
 
@@ -1456,16 +1456,16 @@ func TestUserCannotListAdminUsers(t *testing.T) {
 
 ## 12. 总自测清单
 
-- [ ] 无 token → `401`
-- [ ] 普通角色调管理接口 → `403`
-- [ ] 用户 A 操作 B 的资源 id → 失败
-- [ ] 列表 / 搜索看不到他人私有数据
-- [ ] Body 伪造 `role` / `userId` 无效
-- [ ] 导出 / 下载 / 详情权限一致
-- [ ] JWT Secret 安全、算法锁定、有过期
-- [ ] 降权 / 封禁后关键操作符合预期
-- [ ] 普通用户对「无权限」与「不存在」响应策略符合设计
-- [ ] 所有敏感能力都能在不点 UI 的情况下用 API 验证
+-  无 token → `401`
+-  普通角色调管理接口 → `403`
+-  用户 A 操作 B 的资源 id → 失败
+-  列表 / 搜索看不到他人私有数据
+-  Body 伪造 `role` / `userId` 无效
+-  导出 / 下载 / 详情权限一致
+-  JWT Secret 安全、算法锁定、有过期
+-  降权 / 封禁后关键操作符合预期
+-  普通用户对「无权限」与「不存在」响应策略符合设计
+-  所有敏感能力都能在不点 UI 的情况下用 API 验证
 
 ---
 
