@@ -64,6 +64,19 @@ function route() {
   } else {
     renderHome();
   }
+
+  // 切页后：当前分类保持张开，方便看到当前位置。
+  // 若用户用右侧按钮收起了它，则尊重偏好、不强制展开。
+  const curCat = document.querySelector('.nav-cat[data-cat="' + (state.current.categoryId || '') + '"]');
+  if (curCat && !curCat.classList.contains('open')) {
+    const catKey = 'cat::' + state.current.categoryId;
+    const userCollapsed = state.userOverrides.get(catKey) === true;
+    if (!userCollapsed) {
+      curCat.classList.add('open');
+      state.userOverrides.set(catKey, false);
+      saveUserOverrides();
+    }
+  }
 }
 
 async function init() {
@@ -83,9 +96,17 @@ async function init() {
     saveUserOverrides();
   }
 
+  // 一级分类的展开/收起 —— 与文件夹对称，写入持久化偏好（key 为 "cat::<catId>"）
+  function toggleCategoryByEl(cat) {
+    if (!cat) return;
+    cat.classList.toggle('open');
+    const nowOpen = cat.classList.contains('open');
+    state.userOverrides.set('cat::' + cat.dataset.cat, !nowOpen);
+    saveUserOverrides();
+  }
+
   $('#sidebar').addEventListener('click', (e) => {
-    const link = e.target.closest('a.nav-folder-name');
-    if (link) closeSidebar();
+    // 一级分类：点名称/图标/数字 → 进入该分类主页（不做收缩）；点右侧 chevron → 收缩/展开（持久化）
     const go = e.target.closest('[data-go]');
     if (go) {
       location.hash = `#/c/${go.dataset.go}`;
@@ -94,8 +115,8 @@ async function init() {
     }
     const toggle = e.target.closest('[data-toggle]');
     if (toggle) {
-      const cat = toggle.closest('.nav-cat');
-      if (cat) cat.classList.toggle('open');
+      toggleCategoryByEl(toggle.closest('.nav-cat'));
+      return;
     }
     // 嵌套目录折叠 — chevron 按钮（任意层级）
     const folderToggle = e.target.closest('.nav-folder-toggle');
@@ -105,7 +126,7 @@ async function init() {
       toggleFolderByEl(folderToggle.closest('.nav-folder'));
       return;
     }
-    // 二级及更深：标题点击也会折叠/展开
+    // 所有层级目录标题点击均可折叠/展开
     const titleToggle = e.target.closest('[data-folder-toggle]');
     if (titleToggle) {
       e.preventDefault();

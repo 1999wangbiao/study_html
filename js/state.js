@@ -50,6 +50,14 @@ function isNodeCollapsed(node, key) {
   return defaultCollapsed(node);
 }
 
+// 一级分类默认展开（保持原有行为）；用户手动收起的分类由 userOverrides 记录，
+// key 形如 "cat::<categoryId>"，与文件夹的 "catId::/路径" 命名空间不冲突。
+function isCategoryOpen(catId) {
+  const key = 'cat::' + catId;
+  if (state.userOverrides.has(key)) return state.userOverrides.get(key) === false;
+  return true;
+}
+
 const indexMap = new Map();
 
 // 预取所有文章正文，构建全文搜索索引。
@@ -84,5 +92,5 @@ async function loadIndex() {
   }));
 }
 
-export { state, loadUserOverrides, saveUserOverrides, defaultCollapsed, isNodeCollapsed, indexMap, loadIndex };
+export { state, loadUserOverrides, saveUserOverrides, defaultCollapsed, isNodeCollapsed, isCategoryOpen, indexMap, loadIndex };
 

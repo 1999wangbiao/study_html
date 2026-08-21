@@ -4,7 +4,7 @@
 // 依赖 state（折叠偏好持久化）与 utils（图标/转义/articleUrl）。
 
 import { $, $$, esc, icon, cssesc, articleUrl } from './utils.js';
-import { state, isNodeCollapsed } from './state.js';
+import { state, isNodeCollapsed, isCategoryOpen, saveUserOverrides } from './state.js';
 
 const CATEGORY_PALETTE = [
   '#8b5cf6', // purple
@@ -73,16 +73,6 @@ function countTreeArticles(node) {
   return n;
 }
 
-function firstArticleUrl(node, catId) {
-  const first = node.articles && node.articles[0];
-  if (first) return articleUrl(catId, first.id);
-  for (const c of node.children || []) {
-    const url = firstArticleUrl(c, catId);
-    if (url) return url;
-  }
-  return null;
-}
-
 function buildArticleTree(articles) {
   const root = { name: '', key: '', articles: [], children: [] };
   articles.forEach((a) => {
@@ -121,7 +111,7 @@ function renderArticleTree(node, catId, parentKey) {
     const total = countTreeArticles(child);
     const collapsed = isNodeCollapsed(child, key) ? ' collapsed' : '';
     const ariaExpanded = isNodeCollapsed(child, key) ? 'false' : 'true';
-    // 二级及更深：标题点击也能折叠/展开，所以不再做跳转链接
+    // 标题点击折叠/展开（与一级目录行为一致）
     out += `
       <div class="nav-folder${collapsed}" data-node-key="${esc(key)}">
         <div class="nav-folder-head">
@@ -156,11 +146,10 @@ function renderNavArticles(cat, articles) {
       <span>${esc(a.title)}</span>
     </a>`;
   });
-  // 子目录递归
+  // 子目录递归（一级目录标题点击也能折叠/展开，与深层目录行为一致）
   tree.children.forEach((child) => {
     const nodeKey = '/' + child.name;
     const key = `${cat.id}::${nodeKey}`;
-    const url = firstArticleUrl(child, cat.id);
     const total = countTreeArticles(child);
     const collapsed = isNodeCollapsed(child, key) ? ' collapsed' : '';
     const ariaExpanded = isNodeCollapsed(child, key) ? 'false' : 'true';
@@ -168,7 +157,7 @@ function renderNavArticles(cat, articles) {
       <div class="nav-folder${collapsed}" data-node-key="${esc(key)}">
         <div class="nav-folder-head">
           <button class="nav-folder-toggle" type="button" aria-label="折叠或展开 ${esc(child.name)}" aria-expanded="${ariaExpanded}">${icon('chevron-down', 13)}</button>
-          <a class="nav-folder-name" href="${esc(url || '#')}" title="${esc(child.name)}">${esc(child.name)}</a>
+          <span class="nav-folder-name nav-folder-name--toggleable" data-folder-toggle role="button" tabindex="0" title="${esc(child.name)}">${esc(child.name)}</span>
           <span class="nav-folder-count">${total}</span>
         </div>
         <div class="nav-folder-children">
@@ -187,7 +176,8 @@ function renderSidebar() {
     let catMatch = !q || cat.name.toLowerCase().includes(q);
     if (q) articles = articles.filter((a) => matchesQuery(a, q));
     if (q && !catMatch && !articles.length) return '';
-    const open = !q || catMatch || articles.length > 0;
+    // 非搜索时尊重用户收缩偏好；搜索时全展开（沿用原逻辑）
+    const open = q ? (!catMatch || articles.length > 0) : isCategoryOpen(cat.id);
     const body = articles.length
       ? renderNavArticles(cat, articles)
       : (q ? '<div class="nav-empty">无匹配</div>' : '');
@@ -224,12 +214,15 @@ function highlightActiveFolders() {
     const node = $(`#sidebar .nav-folder[data-node-key="${cssesc(key)}"]`);
     if (node) {
       node.classList.add('active-path');
-      // 自动展开当前文章所在路径
+      // 自动展开当前文章所在路径，并同步偏好：否则下次 renderSidebar 会因
+      // override 仍为 true 而重新收起（自动展开在切页后回滚）。
       if (node.classList.contains('collapsed')) {
         node.classList.remove('collapsed');
+        state.userOverrides.set(key, false);
       }
     }
   });
+  saveUserOverrides();
 }
 
 export { renderSidebar, highlightActiveFolders, categoryColor, catCardHtml, matchesQuery, groupArticles };
