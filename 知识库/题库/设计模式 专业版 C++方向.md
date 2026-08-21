@@ -34,6 +34,37 @@
 
 ### 3. 如何改进以下代码使其满足开放封闭原则（5分）
 
+> ```
+> class Shape 
+> {
+> public:
+>     virtual ~Shape() = default;
+> };
+> 
+> class Circle : public Shape {};
+> class Rectangle : public Shape {};
+> 
+> class Painter
+> {
+> public:
+>     void Draw(vector<Shape*>& shapes)
+>     {
+>         for (auto shape : shapes)
+>         {
+>             if (auto circle = dynamic_cast<Circle*>(shape)) 
+>                 DrawCircle(circle);
+>             else if (auto rect = dynamic_cast<Rectangle*>(shape)) 
+>                 DrawRect(rect);
+>             // 每新增一种图形需修改此方法
+>         }
+>     }
+> private:
+>     void DrawCircle(Circle* circle) { /* 绘制圆形具体实现 */ }
+>     void DrawRect(Rectangle* rect) { /* 绘制矩形具体实现 */ }
+> };
+> 
+> ```
+
 **A.** Shape类增加虚函数Draw，每个图形子类重写该虚函数
 
 **B.** 增加一个新的if语句来实现功能
@@ -49,6 +80,79 @@
 ---
 
 ### 4. 结合优化前后的两段代码，请分析优化后的代码主要体现了哪个设计原则？（5分）
+
+> 优化前代码
+> 
+> 
+> ```
+> class ReportGenerator
+> {
+> public:
+> 	enum class ExportType
+> 	{
+> 		JSON,
+> 		XML,
+> 	};
+> 	void generaterReport(ExportType type)
+> 	{
+> 		switch (type)
+> 		{
+> 		case JSON:
+> 			exportToJSON();
+> 			break;
+> 		case XML:
+> 			exportToXML();
+> 			break;
+> 		}
+> 	}
+> private:
+> 	void exportToJSON()
+> 	{}
+> 	void exportToXML()
+> 	{}
+> };
+> 
+> 
+> ```
+> 优化后代码
+> 
+> 
+> ```
+> class IDataExport
+> {
+> public:
+> 	virtual void exportData() = 0;
+> };
+> 
+> class JSONExport : public IDataExport
+> {
+> public:
+> 	void exportData() override
+> 	{}
+> };
+> 
+> class XMLExport : public IDataExport
+> {
+> public:
+> 	void exportData() override
+> 	{}
+> };
+> 
+> 
+> class ReportGenerator
+> {
+> public:
+> 	ReportGenerator(IDataExport *ex)
+> 		:m_pExporter(ex)
+> 	{}
+> 	void generateReport()
+> 	{}
+> private:
+> 	IDataExport* m_pExporter;
+> 
+> };
+> 
+> ```
 
 **A.** 体现了里氏替换原则，即任何父类对象出现的地方都可以用子类对象来替换，并且替换之后不会影响程序的正确性
 
@@ -82,6 +186,37 @@
 
 ### 6. 如何改进型以下代码使其满足开放封闭原则（5分）
 
+> ```
+> class Shape
+> {
+> public:
+> 	virtual ~Shape() = default;
+> };
+> 
+> class Circle : public Shape{};
+> class Rectangle : public Shape{};
+> 
+> class Painter
+> {
+> public:
+> 	void draw(std::vector<Shape*> &shapes)
+> 	{
+> 		for (auto shape : shapes)
+> 		{
+> 			if (auto circle = dynamic_cast<Circle*>(shape))
+> 				drawCircle(circle);
+> 			else if (auto rect = dynamic_cast<Rectangle*>(shape))
+> 				drawRect(rect);
+> //每新增一种图形需修改此方法
+> 		}
+> 	}
+> private:
+> 	void drawCircle(Circle* circle){/*绘制圆形的具体实现*/ }
+> 	void drawRect(Rectangle *rect){/*绘制矩形的具体实现*/ }
+> };
+> 
+> ```
+
 **A.** Shape类增加虚函数Draw，每个图形子类重写该虚函数
 
 **B.** 增加一个新的if语句来实现功能
@@ -113,6 +248,42 @@
 ---
 
 ### 8. 在下面代码中，Subject::notify()函数的主要作用是（ ）（5分）
+
+> ```
+> class Observer
+>  {
+> public:
+>     virtual void update() = 0;
+> };
+> 
+> class Subject
+> {
+> private:
+>     std::vector<Observer*> m_observers;
+> public:
+>     void attach(Observer* obs)
+>     {
+>         m_observers.push_back(obs);
+>     }
+>     void notify()
+>     {
+>         for (auto obs : m_observers)
+>         {
+>             obs->update();
+>         }
+>     }
+> };
+> 
+> class ConcreteObserver : public Observer
+> {
+> public:
+>     void update() override
+>     {
+>         std::cout << "Received update notification." << std::endl;
+>     }
+> };
+> 
+> ```
 
 **A.** 检查是否有新的观察者加入
 
@@ -162,6 +333,45 @@
 
 ### 11. 图片切换如何实现撤销重做？（5分）
 
+> 业务场景
+> 图片查看器支持 Ctrl+Z 撤销最近一次切换。按钮若直接调 viewer.show(url)，撤销栈会散落各事件处理器；把历史塞进 viewer 又使其职责过重。要求操作可撤销，UI 只发出「执行某操作」的请求。
+> 设计思想
+> 命令（Command） 将操作封装为带 execute/undo 的对象，由 History 栈统一调度。
+> 
+> ```js
+> class ShowImageCommand {
+>   constructor(viewer, url) {
+>     this.viewer = viewer;
+>     this.url = url;
+>     this.prev = null;
+>   }
+>   execute() {
+>     this.prev = this.viewer.current;
+>     this.viewer.show(this.url);
+>   }
+>   undo() {
+>     this.viewer.show(this.prev);
+>   }
+> }
+> 
+> class History {
+>   constructor() { this.stack = []; }
+>   run(cmd) { cmd.execute(); this.stack.push(cmd); }
+>   undo() {
+>     const cmd = this.stack.pop();
+>     cmd.undo();
+>   }
+> }
+> 
+> const history = new History();
+> history.run(new ShowImageCommand(viewer, '/photos/a.jpg'));
+> history.run(new ShowImageCommand(viewer, '/photos/b.jpg'));
+> history.undo(); // 撤销到 a.jpg
+> 
+> 
+> ```
+> 阅读代码后，请选择错误的选项。
+
 **A.** `History` 只依赖命令的 `execute/undo` 接口，不必了解 `viewer` 内部 DOM 细节。
 
 **B.** 命令对象可附带时间戳、操作者等元数据，便于扩展操作审计日志。
@@ -177,6 +387,42 @@
 ---
 
 ### 12. 栏目树如何统一操作部分与整体？（5分）
+
+> 业务场景
+> 新闻 CMS 栏目为树形：「科技」下可有子栏目「AI」，也可直接挂文章。运营需一键统计栏目下文章总数（含子栏目）、删除栏目时连带删子树。早期对文章和栏目分别写删除逻辑，常误删或漏删。
+> 设计思想
+> 组合（Composite） 叶子与容器实现相同接口（如 count/remove），客户端一致对待部分与整体。
+> 
+> ```js
+> class NewsItem {
+>   count() { return 1; }
+>   remove() { /* 删文章 */ }
+> }
+> 
+> class NewsCategory {
+>   constructor() { this.children = []; }
+>   add(node) { this.children.push(node); }
+>   count() {
+>     return this.children.reduce((sum, n) => sum + n.count(), 0);
+>   }
+>   remove() {
+>     this.children.forEach(n => n.remove());
+>   }
+> }
+> 
+> const ai = new NewsCategory('AI');
+> ai.add(new NewsItem('AI 专题稿'));
+> 
+> const root = new NewsCategory('科技');
+> root.add(ai);
+> root.add(new NewsItem('发布稿'));
+> 
+> root.count();  // 2，客户端无需区分叶子/容器
+> root.remove(); // 级联删除整棵子树
+> 
+> 
+> ```
+> 阅读代码后，请选择错误的选项。
 
 **A.** 对 `root.count()` 无需判断节点类型，因为容器与叶子实现了相同的 `count` 接口。
 
@@ -194,6 +440,46 @@
 
 ### 13. 复杂简历如何分步组装？（5分）
 
+> 业务场景
+> 在线简历编辑器有 20+ 字段，教育、项目、技能等模块可选可配，组合差异大。同一份数据需导出 HTML 预览和 JSON 对接 API。超长构造函数曾导致参数顺序错误；新增「实习经历」时所有调用方都要改签名。
+> 设计思想
+> 建造者（Builder） 分步组装复杂对象，将构建过程与最终表示分离，避免巨型构造函数。
+> 
+> ```js
+> class ResumeBuilder {
+>   constructor() {
+>     this.parts = { basic: {}, modules: [] };
+>   }
+>   setBasic(info) {
+>     this.parts.basic = info;
+>     return this; // 链式调用
+>   }
+>   addEducation(edu) {
+>     this.parts.modules.push({ type: 'edu', data: edu });
+>     return this;
+>   }
+>   addProject(proj) {
+>     this.parts.modules.push({ type: 'proj', data: proj });
+>     return this;
+>   }
+>   build(format) {
+>     // 组装过程与最终产物分离
+>     return format === 'html'
+>       ? new HtmlResume(this.parts)
+>       : new JsonResume(this.parts);
+>   }
+> }
+> 
+> const resume = new ResumeBuilder()
+>   .setBasic({ name: 'Li' })
+>   .addEducation({ school: 'X' })
+>   .addProject({ repo: 'Y' })
+>   .build('html');
+> 
+> 
+> ```
+> 阅读代码后，请选择错误的选项。
+
 **A.** 链式调用让「缺哪些模块」一目了然，比 20 个位置的构造函数可读性更好。
 
 **B.** `build('html')` 与 `build('json')` 可在最后一步切换产物类型，组装过程可复用。
@@ -209,6 +495,43 @@
 ---
 
 ### 14. 浅色/深色主题如何成套切换？（5分）
+
+> 业务场景
+> 桌面应用主题商店支持浅色/深色一键切换。表单页含按钮、输入框、弹窗，设计规范要求同主题下风格必须一致，不能浅色按钮配深色弹窗。早期为各控件单独建工厂，曾出现 LightButtonFactory 与 DarkDialogFactory 混用导致验收打回。
+> 设计思想
+> 抽象工厂（Abstract Factory） 用一个工厂接口创建一族相关产品，保证族内风格一致；切换工厂即切换整套 UI。
+> 
+> ```js
+> function DarkThemeFactory() {
+>   return {
+>     createButton()  { return new DarkButton(); },
+>     createInput()   { return new DarkInput(); },
+>     createDialog()  { return new DarkDialog(); }
+>   };
+> }
+> 
+> function LightThemeFactory() {
+>   return {
+>     createButton()  { return new LightButton(); },
+>     createInput()   { return new LightInput(); },
+>     createDialog()  { return new LightDialog(); }
+>   };
+> }
+> 
+> function renderForm(factory) {
+>   const btn = factory.createButton();
+>   const input = factory.createInput();
+>   const dialog = factory.createDialog();
+>   return { btn, input, dialog };
+> }
+> 
+> // 切换主题 = 切换工厂，保证整套控件同族
+> const lightForm = renderForm(LightThemeFactory());
+> const darkForm = renderForm(DarkThemeFactory());
+> 
+> 
+> ```
+> 阅读代码后，请选择错误的选项。
 
 **A.** 为按钮、输入框、弹窗各建独立工厂更灵活，抽象工厂反而限制了自由组合浅色与深色控件。
 
@@ -226,6 +549,34 @@
 
 ### 15. 新增支付渠道如何不改主流程？（5分）
 
+> 业务场景
+> 公司内部支付 SDK 的 PaymentService.pay() 被各业务线共用：创建网关 → 扣款 → 返回结果。渠道每季度可能新增。早期在 PaymentService 内用 if/else 选渠道，曾发生 merge 冲突和漏改导致的线上故障。现约定：新增渠道不得修改 PaymentService 主流程。
+> 设计思想
+> 工厂方法（Factory Method） 将实例化下沉到具体工厂，高层只依赖「能 create 产品」的抽象接口，实现开闭原则。
+> 
+> ```js
+> class PaymentService {
+>   pay(order, channelFactory) {
+>     const gateway = channelFactory.createGateway();
+>     return gateway.charge(order);
+>   }
+> }
+> 
+> class WechatFactory {
+>   createGateway() { return new WechatGateway(); }
+> }
+> 
+> class AlipayFactory {
+>   createGateway() { return new AlipayGateway(); }
+> }
+> 
+> // 调用方注入具体工厂，主流程不感知渠道类名
+> const service = new PaymentService();
+> service.pay(order, new WechatFactory());
+> service.pay(order, new AlipayFactory());
+> 
+> ```
+
 **A.** 新增银联渠道时，可只增加 `UnionPayFactory`，而不修改 `PaymentService.pay` 方法体。
 
 **B.** `PaymentService` 依赖的是 `createGateway` 能力，而非具体渠道类名，符合依赖倒置。
@@ -241,6 +592,20 @@
 ---
 
 ### 16. 图表组件直接轮询 DataCenter 拉数据，改为观察者订阅后，主要改善了什么？（5分）
+
+> 背景
+> 初版图表组件每 500ms 轮询数据中心检查数据是否变化；重构后图表注册为 DataCenter 的观察者，数据更新时主动 notify。
+> 对比摘要
+> 方式
+> 数据更新时
+> 耦合
+> 轮询
+> 定时请求，可能空跑
+> 图表需知道如何取数、轮询间隔
+> 观察者
+> 主题主动推送
+> 图表只实现 update 接口
+> 改为观察者模式后，主要改善了？
 
 **A.** 图表必须知道 DataCenter 内部所有字段才能工作
 
@@ -258,6 +623,32 @@
 
 ### 17. DataSubject 通知观察者更新数据，下列说法错误的是？（5分）
 
+> 背景
+> 实时监控系统用观察者模式：数据变化时自动更新图表和表格组件。
+> 相关代码（简化）
+> 
+> ```js
+> class DataSubject {
+>   constructor() { this.observers = []; this.data = null; }
+>   addObserver(observer) {
+>     if (!this.observers.includes(observer)) this.observers.push(observer);
+>   }
+>   removeObserver(observer) {
+>     const i = this.observers.indexOf(observer);
+>     if (i !== -1) this.observers.splice(i, 1);
+>   }
+>   notifyObservers() {
+>     this.observers.forEach(o => o.update(this.data));
+>   }
+>   setData(newData) { this.data = newData; this.notifyObservers(); }
+> }
+> 
+> // lineChart 被 remove 后，再次 setData 只有 barChart 和 dataTable 收到通知
+> 
+> 
+> ```
+> 下列说法 错误 的是？
+
 **A.** DataSubject 是主题（Subject），ChartObserver/TableObserver 是观察者（Observer）
 
 **B.** lineChart 被 remove 后，后续 setData 不会再通知 lineChart
@@ -273,6 +664,37 @@
 ---
 
 ### 18. 如何保证全局配置只有唯一入口？（5分）
+
+> 业务场景
+> 某图片搜索前端中，「缩略图加载」「详情预取」「失败重试」三个模块都要读取同一套网络策略：maxConcurrent、retryPolicy 等。目前各模块各自 new 配置副本，线上曾出现 A 模块并发 4、B 模块并发 8 的不一致；复制粘贴还带出过字段遗漏。团队要求全局只保留一份可动态调整的运行时配置，且禁止业务方直接 new。
+> 设计思想
+> 单例（Singleton） 保证进程中只有一个实例，并提供全局访问点。JavaScript 常借助 IIFE 闭包隐藏 instance。适用全局配置、弹窗管理器等——代价是全局可变状态，需约束谁有权修改。
+> 
+> ```js
+> const RequestCenter = (function () {
+>   let instance = null;
+>   function create() {
+>     return {
+>       maxConcurrent: 4,
+>       retryPolicy: { times: 2, delay: 300 },
+>       set(key, value) { this[key] = value; }
+>     };
+>   }
+>   return {
+>     getInstance() {
+>       if (!instance) instance = create();
+>       return instance;
+>     }
+>   };
+> })();
+> 
+> const a = RequestCenter.getInstance();
+> const b = RequestCenter.getInstance();
+> console.log(a === b); // true
+> 
+> 
+> ```
+> 阅读代码后，请选择错误的选项。
 
 **A.** 闭包中的 `instance` 对外不可见，外部无法绕过 `getInstance()` 直接创建第二份配置。
 
@@ -290,6 +712,50 @@
 
 ### 19. 全局 ThemeManager 需要保证全应用主题状态一致，应优先采用哪种实现？（5分）
 
+> 背景
+> 前端应用需要全局主题管理器。团队对比了「普通类多次 new」与「单例模式」两种写法。
+> 实现方式一：普通类
+> 
+> ```js
+> class ThemeManager {
+>   constructor() {
+>     this.theme = 'light';
+>   }
+>   setTheme(t) { this.theme = t; }
+>   getTheme() { return this.theme; }
+> }
+> const a = new ThemeManager();
+> const b = new ThemeManager();
+> a.setTheme('dark');
+> console.log(b.getTheme()); // 'light'
+> console.log(a === b);       // false
+> 
+> 
+> ```
+> 实现方式二：单例
+> 
+> ```js
+> class ThemeManager {
+>   constructor() {
+>     if (ThemeManager.instance) return ThemeManager.instance;
+>     this.theme = 'light';
+>     ThemeManager.instance = this;
+>   }
+>   static getInstance() {
+>     if (!ThemeManager.instance) ThemeManager.instance = new ThemeManager();
+>     return ThemeManager.instance;
+>   }
+> }
+> const a = new ThemeManager();
+> const b = new ThemeManager();
+> a.setTheme('dark');
+> console.log(b.getTheme()); // 'dark'
+> console.log(a === b);       // true
+> 
+> 
+> ```
+> 全局主题状态需要一致，应优先采用？
+
 **A.** 实现方式一，因为可以创建多个实例管理不同主题
 
 **B.** 实现方式二，单例保证全局只有一个实例，适合管理全局共享状态
@@ -305,6 +771,27 @@
 ---
 
 ### 20. 两种图表类型如何收口创建逻辑？（5分）
+
+> 业务场景
+> 运营后台数据看板根据 JSON 配置渲染图表，目前只有折线图（line）和柱状图（bar），PM 称两个季度内不会新增类型。业务代码曾散落 new LineChart(data)，构造函数一改就要动十几个文件。团队希望收口创建、调用方只 render()，且不为尚未到来的扩展堆叠过多抽象。
+> 设计思想
+> 简单工厂（Simple Factory） 由中心函数按参数创建不同产品，降低创建复杂度。产品种类少、变化慢时足够；类型持续增加时应再评估是否演进到工厂方法。
+> 
+> ```js
+> function createChart(type, data) {
+>   switch (type) {
+>     case 'line': return new LineChart(data);
+>     case 'bar':  return new BarChart(data);
+>     default: throw new Error('unsupported chart');
+>   }
+> }
+> 
+> const chart = createChart('line', series);
+> chart.render();
+> 
+> 
+> ```
+> 阅读代码后，请选择错误的选项。
 
 **A.** 调用方只依赖 `createChart` 返回对象的 `render()`，与 `LineChart`/`BarChart` 解耦。
 

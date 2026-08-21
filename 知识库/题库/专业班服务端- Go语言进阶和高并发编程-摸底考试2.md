@@ -50,6 +50,20 @@
 
 ### 4. 给定以下Go代码，运行后输出结果是什么？（5分）
 
+> ```go
+> package main
+> 
+> import "fmt"
+> 
+> func main() {
+>     arr := [5]int{1, 2, 3, 4, 5}
+>     slice := arr[1:4]
+>     slice[0] = 10
+>     fmt.Println(arr)
+> }
+> 
+> ```
+
 **A.** [1 2 3 4 5]
 
 **B.** [1 10 3 4 5]
@@ -65,6 +79,19 @@
 ---
 
 ### 5. 观察下面的Go代码，判断运行结果是什么？（5分）
+
+> ```go
+> package main
+> 
+> import "fmt"
+> 
+> func main() {
+>     m := map[string]int{"a": 1, "b": 2, "c": 3}
+>     delete(m, "b")
+>     fmt.Println(m)
+> }
+> 
+> ```
 
 **A.** map[a:1 b:2 c:3]
 
@@ -321,6 +348,18 @@
 ---
 
 ### 21. 对于以下结构体和方法定义，调用 ChangeName 方法后，原始的 Person 结构体实例的 Name 字段会改变吗？（5分）
+
+> ```language
+> type Person struct {
+>     Name string
+>     Age  int
+> }
+> 
+> func (p Person) ChangeName(newName string) {
+>     p.Name = newName
+> }
+> 
+> ```
 
 **A.** 会
 

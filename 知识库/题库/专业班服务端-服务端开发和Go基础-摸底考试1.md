@@ -18,6 +18,8 @@
 
 ### 2. 在Go语言中,以下哪种注释方式是正确的?（5分）
 
+> Go语言支持 // 形式的单行注释和 /* */ 形式的多行注释。
+
 **A.** // 这是单行注释
 
 **B.** /* 这是多行注释 */
@@ -98,6 +100,21 @@
 
 ### 7. 下面代码能编译通过吗？可以的话，输出什么？（5分）
 
+> ```go
+> func DeferTest2(i int) (r int) {
+> 	defer func() {
+> 		r += i
+> 	}()
+> 	return 2
+> }
+> 
+> func main() {
+> 
+>     fmt.Println(DeferTest2(1))
+> }
+> 
+> ```
+
 **A.** 1
 
 **B.** 2
@@ -114,6 +131,23 @@
 
 ### 8. 下面代码输出什么？（5分）
 
+> ```go
+> func main() {
+>   isMatch := func(i int) bool {
+>         switch(i) {
+>         case 1:
+>             fallthrough
+>         case 2:
+>             return true
+>         }
+>         return false
+>     }
+>     fmt.Println(isMatch(1))
+>     fmt.Println(isMatch(2))
+> }
+> 
+> ```
+
 **A.** false true
 
 **B.** true true
@@ -129,6 +163,19 @@
 ---
 
 ### 9. 下面这段代码正确的输出是什么（5分）
+
+> ```go
+> func f() {
+>     defer fmt.Println("D")
+>     fmt.Println("F")
+> }
+> 
+> func main() {
+>     f()
+>     fmt.Println("M")
+> }
+> 
+> ```
 
 **A.** F M D
 
@@ -305,6 +352,18 @@
 ---
 
 ### 20. 下面的Go代码块中，使用defer关键字的输出顺序是什么？（5分）
+
+> ```go
+> package main
+> import "fmt"
+> func main() {
+>     defer fmt.Println("First")
+>     defer fmt.Println("Second")
+>     defer fmt.Println("Third")
+>     fmt.Println("Done")
+> }
+> 
+> ```
 
 **A.** First Second Third Done
 
