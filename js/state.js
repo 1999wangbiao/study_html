@@ -87,7 +87,10 @@ async function loadIndex() {
       if (!fetchedOk) console.warn('预取失败（留待点击时重试）', a.file);
     }
     // 只有成功拉到正文才进缓存；失败就留空，让 getArticleMarkdown 按需重试
-    if (fetchedOk || a.content) indexMap.set(a.id, text);
+    // 注意：key 必须用 a.file（文件路径全局唯一），不能用 a.id——
+    // 多个分类下存在同名文章（如「核心知识点详解」「常见面试题与最佳实践」），
+    // 用 a.id 会导致不同分类的同名文章正文互相覆盖，渲染出错误内容。
+    if (fetchedOk || a.content) indexMap.set(a.file, text);
     state.searchIndex.push({ ...a, plain: plainText(text) });
   }));
 }

@@ -8,7 +8,9 @@ import { state, indexMap } from './state.js';
 import { codeFileHtml } from './code-block.js';
 
 async function getArticleMarkdown(article) {
-  if (indexMap.has(article.id)) return indexMap.get(article.id);
+  // 缓存 key 必须用 article.file（全局唯一）；article.id 在分类内唯一但跨分类会重复。
+  const cacheKey = article.file;
+  if (cacheKey && indexMap.has(cacheKey)) return indexMap.get(cacheKey);
   if (article.content) return article.content;
   const url = article.file.split('/').map(encodeURIComponent).join('/');
   const rawUrl = article.file;
@@ -28,7 +30,7 @@ async function getArticleMarkdown(article) {
         if (/^\s*<!doctype\s|<html[\s>]/i.test(text.slice(0, 200))) {
           return `# 加载失败\n\n**服务器返回了 HTML 页面而非 Markdown 文件**。\n\n这通常是因为 Nginx 配置了 SPA 回退（\`try_files $uri /index.html\`），导致所有请求都被重定向到 \`index.html\`。\n\n**解决方案**：\n\n在 Nginx 配置中，为 \`.md\` 文件和 \`知识库/\` 目录添加正确的 location 规则，或者使用 \`server.js\`（Node.js）直接服务文件。`;
         }
-        indexMap.set(article.id, text);
+        indexMap.set(cacheKey, text);
         return text;
       }
     } catch (e) {
