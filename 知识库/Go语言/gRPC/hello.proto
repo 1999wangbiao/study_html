@@ -1,0 +1,27 @@
+// proto 接口定义：一份契约，多语言生成代码。
+// 生成 Go 代码（在 gRPC 目录下）：
+//   protoc --go_out=. --go_opt=paths=source_relative \
+//          --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//          hello.proto
+syntax = "proto3";
+
+package hello;
+
+// 生成代码的 Go 模块路径;包名（需与 go.mod module 一致）
+option go_package = "gRPC-demo/hellopb;hellopb";
+
+// 服务定义
+service Greeter {
+  // Unary：一个请求，一个响应
+  rpc SayHello(HelloRequest) returns (HelloReply);
+}
+
+// 请求消息
+message HelloRequest {
+  string name = 1; // 字段编号是二进制契约的一部分，发布后不可改
+}
+
+// 响应消息
+message HelloReply {
+  string message = 1;
+}
