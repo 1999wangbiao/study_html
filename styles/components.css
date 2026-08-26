@@ -27,10 +27,9 @@
   z-index: 90;
   height: var(--topbar-h);
   background: color-mix(in srgb, var(--panel) 75%, transparent);
-  border-bottom: 1px solid var(--border);
   backdrop-filter: saturate(180%) blur(16px);
   -webkit-backdrop-filter: saturate(180%) blur(16px);
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  transition: background var(--dur) var(--ease);
 }
 
 .topbar-inner {
