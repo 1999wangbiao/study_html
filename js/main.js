@@ -72,7 +72,8 @@ function initSidebarState() {
   const apply = () => {
     const root = document.documentElement;
     root.style.setProperty('--sidebar-w', getStoredNumber(SIDEBAR_W_KEY, 264) + 'px');
-    root.classList.toggle('sidebar-collapsed', collapsed);
+    // 与移动端抽屉 body.sidebar-open 保持一致：折叠类加在 body 上
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
     if (toggleBtn) {
       const show = !isMobile();
       toggleBtn.hidden = !show;
