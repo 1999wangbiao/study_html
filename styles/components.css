@@ -271,8 +271,17 @@
 /* ========== 主体布局 ========== */
 .layout {
   display: grid;
-  grid-template-columns: 264px minmax(0, 1fr) 232px;
+  grid-template-columns: var(--sidebar-w, 264px) minmax(0, 1fr) 232px;
   min-height: calc(100vh - var(--topbar-h));
+  transition: grid-template-columns var(--dur) var(--ease);
+}
+
+/* 桌面端折叠侧栏：整列收起，内容区占满（仅宽屏生效，移动端抽屉不受影响） */
+@media (min-width: 901px) {
+  body.sidebar-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr) 232px; }
+  body.sidebar-collapsed .sidebar { display: none; }
+  /* 折叠时拖拽把手也随之隐藏 */
+  body.sidebar-collapsed .sidebar-resizer { display: none; }
 }
 
 /* ========== 首页：隐藏侧栏，独占整宽 ========== */
@@ -296,6 +305,36 @@ body.home-active .cat-grid {
   background: color-mix(in srgb, var(--panel) 60%, transparent);
   scrollbar-width: thin;
 }
+
+/* 拖拽把手：侧栏右缘，桌面端可横向拉伸调宽（移动端隐藏） */
+.sidebar-resizer {
+  position: fixed;
+  top: var(--topbar-h);
+  bottom: 0;
+  left: var(--sidebar-w, 264px);
+  width: 7px;
+  margin-left: -3px;
+  cursor: col-resize;
+  z-index: 30;
+  touch-action: none;
+}
+.sidebar-resizer::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 3px;
+  width: 1px;
+  background: var(--border);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+.sidebar-resizer:hover::after,
+body.sidebar-resizing .sidebar-resizer::after {
+  opacity: 1;
+}
+body.sidebar-resizing,
+body.sidebar-resizing * { cursor: col-resize !important; }
+body.sidebar-resizing .layout { transition: none; }
 
 .sidebar-inner { padding: 18px 14px 60px; }
 

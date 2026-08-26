@@ -43,6 +43,93 @@ function initBackToTop() {
   toggleBackToTop();
 }
 
+// ========== 桌面端侧栏：折叠 / 拖拽调宽（宽度与状态记忆到 localStorage） ==========
+
+const SIDEBAR_W_KEY = 'kb-sidebar-w';
+const SIDEBAR_COLLAPSED_KEY = 'kb-sidebar-collapsed';
+const SIDEBAR_MIN = 200;
+const SIDEBAR_MAX = 440;
+
+function getStoredNumber(key, fallback) {
+  try {
+    const n = Number(localStorage.getItem(key));
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  } catch (e) { return fallback; }
+}
+function storeNumber(key, v) {
+  try { localStorage.setItem(key, String(v)); } catch (e) { /* ignore */ }
+}
+function isMobile() {
+  return window.matchMedia('(max-width: 900px)').matches;
+}
+
+// 应用桌面端侧栏折叠态 + 用户记忆的宽度（移动端为抽屉，不参与）
+function initSidebarState() {
+  const toggleBtn = $('#sidebar-toggle-btn');
+  let collapsed = false;
+  try { collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'; } catch (e) { /* ignore */ }
+
+  const apply = () => {
+    const root = document.documentElement;
+    root.style.setProperty('--sidebar-w', getStoredNumber(SIDEBAR_W_KEY, 264) + 'px');
+    root.classList.toggle('sidebar-collapsed', collapsed);
+    if (toggleBtn) {
+      const show = !isMobile();
+      toggleBtn.hidden = !show;
+      toggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      toggleBtn.title = collapsed ? '展开侧栏' : '折叠侧栏';
+    }
+  };
+  apply();
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      collapsed = !collapsed;
+      try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch (e) { /* ignore */ }
+      apply();
+    });
+  }
+
+  // 宽度变化（含首次加载）时同步折叠按钮显隐：折叠后应只剩展开入口
+  const ro = new ResizeObserver(() => {
+    if (toggleBtn) {
+      const show = !isMobile();
+      toggleBtn.hidden = show ? collapsed : true;
+      toggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    }
+  });
+  if (typeof ResizeObserver !== 'undefined') ro.observe(document.body);
+}
+
+// 拖拽侧栏右缘调宽：mousedown 记录起点 → mousemove 更新 --sidebar-w → mouseup 持久化
+function initSidebarResizer() {
+  const resizer = $('#sidebar-resizer');
+  if (!resizer) return;
+
+  resizer.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || isMobile() || document.body.classList.contains('sidebar-collapsed')) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = getStoredNumber(SIDEBAR_W_KEY, 264);
+    let delta = 0;
+
+    const onMove = (ev) => {
+      delta = ev.clientX - startX;
+      const w = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, startW + delta));
+      document.documentElement.style.setProperty('--sidebar-w', w + 'px');
+    };
+    const onUp = () => {
+      storeNumber(SIDEBAR_W_KEY, Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, startW + delta)));
+      document.body.classList.remove('sidebar-resizing');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.body.classList.add('sidebar-resizing');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
 function toggleBackToTop() {
   const btn = $('#back-to-top');
   if (!btn) return;
@@ -195,6 +282,8 @@ async function init() {
   window.addEventListener('resize', updateProgress);
 
   initBackToTop();
+  initSidebarState();
+  initSidebarResizer();
   setupReveal();
 
   try {

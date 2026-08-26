@@ -73,6 +73,8 @@
   /* 尺寸 */
   --topbar-h: 64px;
   --content-max: 880px;
+  /* 侧边导航宽度（桌面端可折叠/拖拽调宽，JS 会改写此变量） */
+  --sidebar-w: 264px;
 
   /* 字体 */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
