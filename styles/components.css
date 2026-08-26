@@ -276,10 +276,28 @@
   transition: grid-template-columns var(--dur) var(--ease);
 }
 
-/* 桌面端折叠侧栏：整列收起，内容区占满（仅宽屏生效，移动端抽屉不受影响） */
+/* 桌面端折叠侧栏：内容区独占整行并相对视口水平居中，右侧 TOC 转悬浮（不占布局列） */
 @media (min-width: 901px) {
-  body.sidebar-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr) 232px; }
+  body.sidebar-collapsed .layout { grid-template-columns: minmax(0, 1fr); }
   body.sidebar-collapsed .sidebar { display: none; }
+  body.sidebar-collapsed .content { padding-left: 48px; padding-right: 48px; }
+  /* TOC 悬浮在内容右上角，不参与 grid，避免把内容中心挤偏 */
+  body.sidebar-collapsed .toc {
+    position: fixed;
+    right: 18px;
+    top: calc(var(--topbar-h) + 24px);
+    z-index: 25;
+    max-height: calc(100vh - var(--topbar-h) - 40px);
+    width: 224px;
+    background: color-mix(in srgb, var(--panel) 85%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0.96;
+  }
   /* 折叠时拖拽把手也随之隐藏 */
   body.sidebar-collapsed .sidebar-resizer { display: none; }
 }
