@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>待办事项 - React 示例</title>
+ 
+  <!-- ============================================================
+       下面 3 个 <script> 是从网上（CDN）加载 React 相关的库。
+       有了它们，浏览器才能看懂 JSX 这种"长得像 HTML 的代码"。
+       因为是 CDN，所以双击这个 .html 文件就能运行，不用装任何环境。
+       ============================================================ -->
+ 
+  <!-- 1. React 核心库：提供 useState、useEffect 这些 Hook -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+ 
+  <!-- 2. ReactDOM：负责把组件真正渲染到网页上 -->
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+ 
+  <!-- 3. Babel：把 JSX 语法翻译成浏览器能执行的普通 JavaScript -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+ 
+  <style>
+    /* 下面这些只是让界面好看一点，跟 React 原理无关，扫一眼即可 */
+    body {
+      font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: #f5f6f8;
+      display: flex;
+      justify-content: center;
+      padding-top: 48px;
+      margin: 0;
+    }
+    .app {
+      background: #fff;
+      width: 420px;
+      border-radius: 12px;
+      padding: 24px 28px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    form { display: flex; gap: 8px; margin-bottom: 16px; }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button.del { background: #ef4444; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    li span { flex: 1; }
+    .stats { color: #667085; font-size: 13px; margin: 12px 0 4px; }
+    .empty { color: #98a2b3; font-size: 14px; }
+  </style>
+</head>
+<body>
+ 
+  <!-- 这个空的 div 是"挂载点"。
+       整个 React 应用最后会被塞进这个 div 里面。
+       你看到的页面内容，全部由 React 动态生成，原始 HTML 里其实什么都没有。 -->
+  <div id="root"></div>
+ 
+  <!-- type="text/babel" 告诉浏览器：这段不是普通 JS，里面含有 JSX，
+       需要先交给上面的 Babel 翻译，再执行。 -->
+  <script type="text/babel">
+ 
+    // ============================================================
+    // 先把 React 提供的东西取出来，后面会用到：
+    //   useState  —— 用来在组件里"存数据（状态）"
+    //   useEffect —— 用来在组件挂载后"执行副作用"（比如调接口拿数据）
+    // ============================================================
+    const { useState, useEffect } = React;
+ 
+ 
+    // ============================================================
+    // 组件 ①：TodoInput —— 负责"输入框 + 添加按钮"
+    // ============================================================
+    // 这个组件自己不保存待办数据，它只做两件事：
+    //   1) 记录用户在输入框里打了什么字（这是它自己的小状态 text）
+    //   2) 点"添加"时，把这个字通过 props 里的 onAdd 交给上层
+    // ------------------------------------------------------------
+    function TodoInput({ onAdd }) {
+ 
+      // —— 状态：输入框里此刻的文字 ——
+      // useState("") 表示：创建一个状态，初始值是空字符串 ""。
+      // 它返回一个包含两项的数组，我们用解构赋值拆开：
+      //   text     → 状态的值，读它就知道用户打了什么
+      //   setText  → 修改状态的函数，要改 text 只能通过它
+      const [text, setText] = useState("");
+ 
+      // —— 提交表单时触发（用户按回车，或点"添加"按钮）——
+      const handleSubmit = (e) => {
+        e.preventDefault();          // 阻止表单默认的"刷新页面"行为，否则页面会闪一下重载
+        const trimmed = text.trim(); // trim() 去掉输入内容首尾的空格
+        if (!trimmed) return;        // 如果去掉空格后是空的，说明没输入有效内容，直接不添加
+        onAdd(trimmed);              // 把有效内容传给父组件（TodoApp 的 addTodo）
+        setText("");                 // 添加成功后清空输入框，方便继续输入下一条
+      };
+ 
+      // —— 这个组件显示成什么样子 ——
+      return (
+        <form onSubmit={handleSubmit}>
+          {/*
+            下面这个 <input> 是"受控组件"的标准写法，两步缺一不可：
+              value={text}                  → 输入框显示的内容，永远等于状态 text
+              onChange={(e) => setText(...)} → 用户每敲一个字，就用新内容更新状态
+            这样"界面"和"状态"始终同步：状态变了界面跟着变，界面变了状态也跟着变。
+          */}
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="输入要做的事..."
+          />
+          {/*
+            type="submit" 的按钮放在 <form> 里，点击它会触发上面的 onSubmit。
+            所以不用单独给按钮写 onClick，提交逻辑统一写在 handleSubmit 里。
+          */}
+          <button type="submit">添加</button>
+        </form>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // 组件 ②：TodoItem —— 负责"显示一条待办"
+    // ============================================================
+    // 它收到三个 props（全是父组件传下来的，自己不能改）：
+    //   todo     → 这一条待办的数据对象，形如 { id, text, done }
+    //   onToggle → 用户勾选/取消勾选时，要调用的函数
+    //   onDelete → 用户点删除时，要调用的函数
+    // 这个组件里没有任何 useState，是典型的"纯展示 + 回传事件"组件。
+    // ------------------------------------------------------------
+    function TodoItem({ todo, onToggle, onDelete }) {
+      return (
+        /*
+          style={{ textDecoration: ... }} 是"内联样式"。
+          逻辑：如果这条待办 done 为 true（已完成），文字加删除线；
+                否则不加。这是 React 里根据状态改样式的最常见方式。
+          注意：TodoItem 的根元素就是这一个 <li>，不再往外多包一层。
+        */
+        <li style={{ textDecoration: todo.done ? "line-through" : "none" }}>
+          {/*
+            勾选框：checked 由数据 todo.done 决定（数据驱动视图）。
+            用户点击它时，不在这里改数据，而是调用 onToggle(todo.id)，
+            把"我点了第 todo.id 条"这个意图告诉父组件，由父组件去改。
+          */}
+          <input
+            type="checkbox"
+            checked={todo.done}
+            onChange={() => onToggle(todo.id)}
+          />
+          {/* 显示这条待办的文字内容 */}
+          <span>{todo.text}</span>
+          {/* 删除按钮：点击时调用 onDelete(todo.id)，同样把意图交给父组件 */}
+          <button className="del" onClick={() => onDelete(todo.id)}>删除</button>
+        </li>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // 组件 ③：TodoList —— 负责"把一整组待办列出来"
+    // ============================================================
+    // 收到三个 props：
+    //   todos    → 待办数组（数据本身）
+    //   onToggle、onDelete → 继续往下传给每一个 TodoItem（层层透传）
+    // ------------------------------------------------------------
+    function TodoList({ todos, onToggle, onDelete }) {
+ 
+      // —— 条件渲染：数据为空时，显示一句提示，而不是一个空空的列表 ——
+      // 这是 React 里"根据情况显示不同内容"的写法：
+      //   条件为真 → 返回提示文字；条件为假 → 走下面渲染列表。
+      if (todos.length === 0) {
+        return <p className="empty">暂无待办，先添加一条吧</p>;
+      }
+ 
+      // —— 列表渲染 ——
+      return (
+        <ul>
+          {/*
+            todos.map(...) 把"待办数组"变成"一组 <TodoItem> 组件"。
+            每遍历到一条数据，就生成一个 TodoItem。
+ 
+            重点看 key={todo.id}：
+              key 是每条数据的"身份证号"。React 靠它判断——
+              下次数据变化时，哪一条是旧的、哪一条是新增/删除的。
+              没有 key（或用数组下标当 key）会导致 React 判断出错，
+              出现"删错行""输入框内容串行"等问题。
+              所以 key 一定要用稳定、唯一的 id，不要用下标。
+          */}
+          {todos.map((todo) => (
+            <TodoItem
+              key={todo.id}        // 唯一标识，必需
+              todo={todo}          // 把整条数据对象传下去
+              onToggle={onToggle}  // 把切换函数原样往下传
+              onDelete={onDelete}  // 把删除函数原样往下传
+            />
+          ))}
+        </ul>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // 组件 ④：Stats —— 负责"显示统计数字"
+    // ============================================================
+    // 它只接收一个 props：todos（待办数组）。
+    // 注意：它没有自己的 useState！因为完成数、未完成数都能由 todos
+    //       直接"算出来"，不需要再单独存一份——这叫"派生数据"。
+    // 原则：能算出来的，就别存，否则两处数据容易对不上。
+    // ------------------------------------------------------------
+    function Stats({ todos }) {
+      // filter 会筛选出满足条件的项：这里筛出 done 为 true 的，再数个数
+      const doneCount = todos.filter((t) => t.done).length;
+      // 总数减去已完成 = 未完成
+      const leftCount = todos.length - doneCount;
+ 
+      return (
+        <p className="stats">
+          共 {todos.length} 项 · 已完成 {doneCount} · 未完成 {leftCount}
+        </p>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // 组件 ⑤：TodoApp —— 顶层组件，整个应用唯一"持有数据"的地方
+    // ============================================================
+    // 设计原则：数据（state）尽量放在最上层，然后通过 props 一层层传下去；
+    //           修改数据的函数也定义在上层，同样通过 props 传下去。
+    // 这样数据流是单向、清晰的：数据从上往下流，事件从下往上通知。
+    // ------------------------------------------------------------
+    function TodoApp() {
+ 
+      // —— 状态 1：待办列表，初始是空数组 ——
+      const [todos, setTodos] = useState([]);
+ 
+      // —— 状态 2：是否正在加载，初始为 true（正在加载）——
+      const [loading, setLoading] = useState(true);
+ 
+      // —— useEffect：模拟"打开页面后去后端接口拿数据" ——
+      // 真实项目里，这里应该写 fetch/axios 去请求接口。
+      // 这里用 setTimeout 假装等了 0.8 秒后，"接口"返回了 3 条数据。
+      // 结尾的 [] 是依赖数组，意思是"只在组件第一次出现时执行一次"。
+      useEffect(() => {
+        setTimeout(() => {
+          // 模拟接口返回的数据：放进 todos 状态
+          setTodos([
+            { id: 1, text: "学习 React 组件", done: true },
+            { id: 2, text: "理解 state 状态", done: false },
+            { id: 3, text: "搞清楚 props 传值", done: false },
+          ]);
+          // 数据拿到了，把加载状态改成 false（结束加载）
+          setLoading(false);
+        }, 800);
+      }, []);
+ 
+ 
+      // ==========================================================
+      // 下面三个函数是"修改数据"的入口，全部定义在 TodoApp 里，
+      // 然后通过 props 传给子组件调用。
+      // 它们有一个共同铁律：绝不直接修改旧数组，而是返回一个新数组。
+      // 因为 React 是靠"新旧值是否不同"来判断要不要重新渲染的，
+      // 如果你直接 push / 直接改原数组，React 察觉不到，页面就不更新。
+      // ==========================================================
+ 
+      // —— 增：添加一条待办 ——
+      const addTodo = (text) => {
+        // 造一个新数据对象。Date.now() 是当前时间戳，当 id 用，保证唯一。
+        const newTodo = { id: Date.now(), text, done: false };
+        // [...todos, newTodo]：展开旧数组 + 拼上新数据 = 一个全新的数组
+        setTodos([...todos, newTodo]);
+        // 注意：不能用 todos.push(newTodo) 再 setTodos(todos)，
+        //       因为 push 改的是原数组，React 认为"还是原来那个数组"，不会刷新。
+      };
+ 
+      // —— 改：切换某条的"完成/未完成"状态 ——
+      const toggleTodo = (id) => {
+        // map 会遍历每条数据：
+        //   如果这条的 id 正好是要切换的那条 → 复制它，并把 done 取反（!t.done）
+        //   否则 → 原样返回 t（保持不变）
+        // 结果是一个新数组，其中只有目标那一项变了。
+        setTodos(
+          todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
+        );
+      };
+ 
+      // —— 删：删除某条待办 ——
+      const deleteTodo = (id) => {
+        // filter 会筛选出"id 不等于目标 id"的所有项，
+        // 也就是"去掉那一项"之后的新数组。
+        setTodos(todos.filter((t) => t.id !== id));
+      };
+ 
+ 
+      // —— 这个顶层组件显示成什么样子 ——
+      return (
+        <div className="app">
+          <h1>待办事项</h1>
+ 
+          {/* 把 addTodo 作为 onAdd 传给 TodoInput，
+              这样 TodoInput 里点添加时，就会调用这里的 addTodo */}
+          <TodoInput onAdd={addTodo} />
+ 
+          {/*
+            —— 条件渲染：根据 loading 决定显示什么 ——
+            loading 为 true（还没拿到数据）→ 显示"加载中..."
+            loading 为 false（拿到数据了）   → 显示统计 + 列表
+            这里用三元表达式：loading ? A : B
+            <>...</> 是"空标签"，用来包住多个相邻元素而不产生多余节点。
+          */}
+          {loading ? (
+            <p className="empty">加载中...</p>
+          ) : (
+            <>
+              <Stats todos={todos} />
+              <TodoList
+                todos={todos}            // 把数据传下去
+                onToggle={toggleTodo}    // 把切换函数传下去
+                onDelete={deleteTodo}    // 把删除函数传下去
+              />
+            </>
+          )}
+        </div>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // 渲染入口：整个程序从这里启动
+    // ============================================================
+    // 找到页面上那个 id="root" 的空 div，
+    // 把 <TodoApp /> 这个组件渲染进去。
+    // 之后页面上的所有内容，都是 React 根据状态自动生成的。
+    ReactDOM.createRoot(document.getElementById("root")).render(<TodoApp />);
+  </script>
+</body>
+</html>
