@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>React Hooks 示例</title>
+ 
+  <!-- 通过 CDN 引入 React，双击本文件即可运行 -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+ 
+  <style>
+    body {
+      font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: #f5f6f8;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+      margin: 0;
+    }
+    .app { max-width: 520px; width: 100%; }
+    h1 { font-size: 24px; margin: 0 0 20px; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+    .card h2 {
+      font-size: 16px;
+      margin: 0 0 4px;
+      color: #2563eb;
+    }
+    .card .desc { font-size: 13px; color: #667085; margin: 0 0 14px; }
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #2563eb;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      margin-right: 6px;
+    }
+    button.gray { background: #667085; }
+    input[type="text"] {
+      padding: 6px 10px;
+      border: 1px solid #d0d5dd;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .num { font-weight: bold; color: #111; }
+    .hint { font-size: 12px; color: #98a2b3; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+ 
+  <script type="text/babel">
+    // ============================================================
+    // 先把 React 提供的 Hooks 全部取出来，后面一个个演示
+    // ============================================================
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+    const ReactMemo = React.memo;   // memo 不是 Hook，但常和 useCallback 一起用
+ 
+ 
+    // ============================================================
+    // ① useState —— 让组件"记住"会变化的数据
+    // ============================================================
+    function CounterDemo() {
+      // count 是状态，setCount 是修改它的函数，初始值 0
+      const [count, setCount] = useState(0);
+ 
+      return (
+        <div className="card">
+          <h2>① useState：存状态</h2>
+          <p className="desc">点按钮，count 变化，页面自动更新。这就是"数据驱动视图"。</p>
+          <div className="row">
+            {/* 前一个 count 参与计算，所以要用函数式更新，避免拿到旧值 */}
+            <button onClick={() => setCount((c) => c - 1)}>-1</button>
+            <span className="num">{count}</span>
+            <button onClick={() => setCount((c) => c + 1)}>+1</button>
+            {/* 直接传一个确定值也可以 */}
+            <button className="gray" onClick={() => setCount(0)}>重置</button>
+          </div>
+          <p className="hint">
+            setCount 有两种传法：传"新值" setCount(0)；传"函数" setCount(c =&gt; c + 1)。
+            要基于上一次的值计算时，用函数式写法更安全。
+          </p>
+        </div>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // ② useEffect —— 渲染后执行"副作用"
+    // ============================================================
+    function TitleDemo() {
+      const [name, setName] = useState("");
+ 
+      // 副作用：每次 name 变化后，把浏览器标签页标题也改掉。
+      // 末尾 [name] 是"依赖数组"：只有 name 变了才重新执行。
+      useEffect(() => {
+        document.title = name ? `你好，${name}` : "React Hooks 示例";
+      }, [name]);
+ 
+      return (
+        <div className="card">
+          <h2>② useEffect：执行副作用</h2>
+          <p className="desc">
+            在输入框打字，观察浏览器标签页的标题会跟着变——这就是"渲染之外"的副作用。
+          </p>
+          <div className="row">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="输入你的名字"
+            />
+          </div>
+          <p className="hint">
+            依赖数组控制执行时机：[] = 只执行一次；[name] = name 变才执行；不写 = 每次渲染都执行。
+          </p>
+        </div>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // ③ useRef —— 拿到真实 DOM，或存"不触发渲染"的值
+    // ============================================================
+    function RefDemo() {
+      const inputRef = useRef(null);   // 用来指向输入框这个真实 DOM
+      const renderCount = useRef(0);   // 用来记录渲染次数（改它不会触发渲染）
+ 
+      // 每次组件渲染，就 +1。这里直接改 ref.current，是允许的，
+      // 因为 ref 的修改不会引起重新渲染。
+      renderCount.current = renderCount.current + 1;
+ 
+      // 点按钮时，通过 ref 直接让输入框获得焦点
+      const focusInput = () => {
+        inputRef.current.focus();
+      };
+ 
+      return (
+        <div className="card">
+          <h2>③ useRef：拿 DOM / 存不渲染的值</h2>
+          <p className="desc">点"聚焦输入框"，用 ref 直接操作 DOM，不用查 getElementById。</p>
+          <div className="row">
+            <input ref={inputRef} type="text" placeholder="我是输入框" />
+            <button onClick={focusInput}>聚焦输入框</button>
+          </div>
+          <p className="hint">
+            本组件已经渲染了 <span className="num">{renderCount.current}</span> 次。
+            注意：renderCount 存在 ref 里，它自己变了不会导致界面刷新，所以这个数字只在下一次渲染时才"顺便"更新。
+          </p>
+        </div>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // ④ useMemo —— 缓存"昂贵的计算"结果
+    // ============================================================
+    // 组件外面的一个变量，用来统计"昂贵计算"到底被执行了几次
+    let expensiveCount = 0;
+ 
+    function MemoDemo() {
+      const [num, setNum] = useState(100);   // 参与计算的数
+      const [tick, setTick] = useState(0);   // 只是用来"强制重新渲染"的开关
+ 
+      // 计算 1+2+...+num 的和。这是个"昂贵计算"的例子。
+      // useMemo 会记住上次的结果：只有 num 变化时，才重新计算；
+      // 其它原因导致的重新渲染（比如点了"强制重渲染"），直接返回缓存值。
+      const sum = useMemo(() => {
+        expensiveCount = expensiveCount + 1;  // 每真正执行一次，计数 +1
+        let total = 0;
+        for (let i = 1; i <= num; i++) total += i;
+        return total;
+      }, [num]);   // 依赖 num，只有 num 变了才重新算
+ 
+      return (
+        <div className="card">
+          <h2>④ useMemo：缓存计算结果</h2>
+          <p className="desc">1+2+...+num 的和 = <span className="num">{sum}</span></p>
+          <div className="row">
+            <button onClick={() => setNum((n) => n + 100)}>num + 100</button>
+            <span className="num">num = {num}</span>
+            {/* tick 变化会触发重渲染，但 num 没变，所以 useMemo 不会重算 */}
+            <button className="gray" onClick={() => setTick((t) => t + 1)}>强制重渲染</button>
+          </div>
+          <p className="hint">
+            "昂贵计算"实际执行了 <span className="num">{expensiveCount}</span> 次。
+            点"num + 100"它会增加；点"强制重渲染"它不变——因为结果被缓存了。
+          </p>
+        </div>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // ⑤ useCallback —— 缓存"函数"，配合 memo 避免子组件无谓重渲染
+    // ============================================================
+    let childRenderCount = 0;   // 统计子组件被渲染了几次
+ 
+    // 用 React.memo 包一层：只有 props 变化时，子组件才重新渲染
+    const Child = ReactMemo(function Child({ onClick }) {
+      childRenderCount = childRenderCount + 1;
+      return <button onClick={onClick}>我是子组件按钮</button>;
+    });
+ 
+    function CallbackDemo() {
+      const [count, setCount] = useState(0);   // 父组件自己的状态
+      const [text, setText] = useState("");
+ 
+      // 用 useCallback 把函数"固定"住：只要依赖 [] 不变，每次渲染拿到的都是同一个函数
+      const handleClick = useCallback(() => {
+        console.log("子组件按钮被点了");
+      }, []);
+ 
+      return (
+        <div className="card">
+          <h2>⑤ useCallback：缓存函数</h2>
+          <p className="desc">父组件重渲染时，传给子组件的函数不换新，子组件就不会跟着重渲染。</p>
+          <div className="row">
+            <span className="num">父组件 count = {count}</span>
+            <button onClick={() => setCount((c) => c + 1)}>父组件 +1</button>
+            <input
+              type="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="在父组件打字"
+            />
+          </div>
+          <div className="row" style={{ marginTop: 10 }}>
+            <Child onClick={handleClick} />
+          </div>
+          <p className="hint">
+            子组件目前渲染了 <span className="num">{childRenderCount}</span> 次。
+            因为 handleClick 被 useCallback 固定住了，父组件怎么变，子组件都不重渲染。
+            如果删掉 useCallback（直接传普通函数），每打一个字子组件都会跟着重渲染。
+          </p>
+        </div>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // ⑥ 自定义 Hook —— 把复用逻辑抽出来
+    // ============================================================
+    // 这是一个"自定义 Hook"：名字必须以 use 开头。
+    // 它内部用 useState + useEffect 实现"监听窗口宽度"这个逻辑。
+    function useWindowWidth() {
+      const [width, setWidth] = useState(window.innerWidth);  // 初始宽度
+ 
+      useEffect(() => {
+        // 窗口尺寸变化时，更新宽度状态
+        const onResize = () => setWidth(window.innerWidth);
+        window.addEventListener("resize", onResize);   // 订阅：副作用
+        // 返回清理函数：组件卸载时移除监听，避免内存泄漏
+        return () => window.removeEventListener("resize", onResize);
+      }, []);   // 只在挂载时执行一次
+ 
+      return width;   // 把宽度返回给使用它的组件
+    }
+ 
+    function WindowWidthDemo() {
+      const width = useWindowWidth();   // 用自定义 Hook，就像用内置 Hook 一样
+      return (
+        <div className="card">
+          <h2>⑥ 自定义 Hook：逻辑复用</h2>
+          <p className="desc">拖动改变浏览器窗口大小，下面的数字会实时变化。</p>
+          <p className="num">当前窗口宽度：{width} px</p>
+          <p className="hint">
+            useWindowWidth 是我自己写的 Hook，它把"监听宽度"这套逻辑封装起来，
+            任何组件都能一行代码复用。这就是 Hooks 最强大的能力。
+          </p>
+        </div>
+      );
+    }
+ 
+ 
+    // ============================================================
+    // 顶层 App：把所有演示拼起来
+    // ============================================================
+    function App() {
+      return (
+        <div className="app">
+          <h1>React Hooks 示例</h1>
+          <CounterDemo />
+          <TitleDemo />
+          <RefDemo />
+          <MemoDemo />
+          <CallbackDemo />
+          <WindowWidthDemo />
+        </div>
+      );
+    }
+ 
+    // 渲染入口
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
